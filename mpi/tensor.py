@@ -17,7 +17,6 @@ def scatter_init(
     tensor = None
     if get_rank() == 0:
         data = rng.random((d_in, d_out))
-        print(data)
         arrs = np.split(data, get_world_size(), axis=axis)
         raveled = [np.ravel(arr) for arr in arrs]
 
