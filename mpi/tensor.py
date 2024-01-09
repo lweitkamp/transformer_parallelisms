@@ -33,18 +33,22 @@ def scatter_init(
     return tensor_scattered
 
 
-def gather(
+def all_reduce(
     scattered_source: np.ndarray,
-    d_in: int,
-    d_out: int,
-    op,
-    dtype: str = 'int',
+    reduction: MPI.Op,
+    dtype: str | np.dtype = 'float',
 ) -> np.ndarray:
     comm = MPI.COMM_WORLD
-    gathered_result = np.empty((d_in, d_out), dtype=dtype)
-    comm.Reduce(scattered_source, gathered_result, op=op, root=0)
+    gathered_result = np.empty_like(scattered_source, dtype=dtype)
+    comm.Reduce(scattered_source, gathered_result, op=reduction, root=0)
 
     if get_rank() == 0:
         return gathered_result
 
     return np.zeros_like(gathered_result, dtype=dtype)
+
+
+def broadcast(input_tensor: np.ndarray):
+    """Broadcast an array"""
+    comm = MPI.COMM_WORLD
+    return comm.bcast(input_tensor, root=0)

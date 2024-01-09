@@ -1,9 +1,9 @@
+from typing import Optional
+
 import numpy as np
 from mpi4py import MPI
 
-from tensor import scatter_init, gather
-
-from typing import Optional
+from tensor import scatter_init, all_reduce, broadcast
 
 
 class MLP:
@@ -14,10 +14,14 @@ class MLP:
 
     @staticmethod
     def forward(weights: dict, x: np.ndarray) -> np.ndarray:
-        """Multiply x by scattered weights and sum the results."""
+        """Broadcast x to all devices, multiply x by scattered weights and
+        sum the results."""
+        x = broadcast(x)
+        
         y = x @ weights["A"]
         z = y @ weights["B"]
-        out = gather(z, z.shape[0], z.shape[1], op=MPI.SUM)
+        
+        out = all_reduce(z, reduction=MPI.SUM)
         return out
 
     def backward(self):
