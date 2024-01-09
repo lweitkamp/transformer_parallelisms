@@ -12,7 +12,8 @@ class MLP:
         self.d_model = d_model
         self.d_hidden = d_hidden or d_model*4
 
-    def forward(self, weights: dict, x: np.ndarray) -> np.ndarray:
+    @staticmethod
+    def forward(weights: dict, x: np.ndarray) -> np.ndarray:
         """Multiply x by scattered weights and sum the results."""
         y = x @ weights["A"]
         z = y @ weights["B"]
@@ -24,6 +25,8 @@ class MLP:
         raise NotImplementedError
 
     def init_weights(self, rng):
+        """Initiate weights for the MLP. This specific MLP has two
+        weight matrices, no bias."""
         return {
             "A": scatter_init(self.d_model, self.d_hidden, rng, axis=1),
             "B": scatter_init(self.d_hidden, self.d_model, rng, axis=0),
