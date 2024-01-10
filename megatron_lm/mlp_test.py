@@ -2,8 +2,8 @@ import pytest
 from mpi4py import MPI
 import numpy as np
 
-from mlp import MLP
-from world_info import get_rank
+from megatron_lm.mlp import MLP
+from world_utils.world_info import get_rank
 
 
 @pytest.mark.parametrize("batch_size,seq_len,d_model,seed", [(2, 3, 4, 42)])

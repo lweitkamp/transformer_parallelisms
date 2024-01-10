@@ -3,7 +3,7 @@ from typing import Optional
 import numpy as np
 from mpi4py import MPI
 
-from tensor import scatter_init, all_reduce, broadcast
+from world_utils.tensor import scatter_init, all_reduce, broadcast
 
 
 class MLP:

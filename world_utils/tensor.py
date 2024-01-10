@@ -1,7 +1,7 @@
 import numpy as np
 from mpi4py import MPI
 
-from world_info import get_rank, get_world_size
+from world_utils.world_info import get_rank, get_world_size
 
 
 def scatter_init(
@@ -11,6 +11,7 @@ def scatter_init(
     dtype: str = 'float',
 ) -> np.ndarray:
     """Initiate a tensor and scatter it across an axis."""
+
     comm = MPI.COMM_WORLD
 
     tensor = None
@@ -22,10 +23,10 @@ def scatter_init(
         # Join them back up into a 1D array
         tensor = np.concatenate(raveled)
 
-    shape = (
+    shape = [
         dim // get_world_size() if i == axis else dim
         for i, dim in enumerate(shape)
-    )
+    ]
 
     tensor_scattered = np.empty(shape, dtype=dtype)
     comm.Scatterv(tensor, tensor_scattered, root=0)
