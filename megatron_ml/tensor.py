@@ -5,8 +5,7 @@ from world_info import get_rank, get_world_size
 
 
 def scatter_init(
-    d_in: int,
-    d_out: int,
+    shape: tuple[int, ...],
     rng: np.random.Generator,
     axis: int,
     dtype: str = 'float',
@@ -16,19 +15,19 @@ def scatter_init(
 
     tensor = None
     if get_rank() == 0:
-        data = rng.random((d_in, d_out))
+        data = rng.random(shape)
         arrs = np.split(data, get_world_size(), axis=axis)
         raveled = [np.ravel(arr) for arr in arrs]
 
         # Join them back up into a 1D array
         tensor = np.concatenate(raveled)
 
-    d_in, d_out = (
-        d_in // get_world_size() if axis == 0 else d_in,
-        d_out // get_world_size() if axis == 1 else d_out,
+    shape = (
+        dim // get_world_size() if i == axis else dim
+        for i, dim in enumerate(shape)
     )
 
-    tensor_scattered = np.empty((d_in, d_out), dtype=dtype)
+    tensor_scattered = np.empty(shape, dtype=dtype)
     comm.Scatterv(tensor, tensor_scattered, root=0)
     return tensor_scattered
 

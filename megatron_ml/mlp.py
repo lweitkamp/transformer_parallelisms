@@ -32,6 +32,6 @@ class MLP:
         """Initiate weights for the MLP. This specific MLP has two
         weight matrices, no bias."""
         return {
-            "A": scatter_init(self.d_model, self.d_hidden, rng, axis=1),
-            "B": scatter_init(self.d_hidden, self.d_model, rng, axis=0),
+            "A": scatter_init((self.d_model, self.d_hidden), rng, axis=1),
+            "B": scatter_init((self.d_hidden, self.d_model), rng, axis=0),
         }

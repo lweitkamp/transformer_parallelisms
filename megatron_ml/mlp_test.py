@@ -6,7 +6,7 @@ from mlp import MLP
 from world_info import get_rank
 
 
-# @pytest.mark.parametrize("batch_size,seq_len,d_model,seed", [(2, 3, 4, 42)])
+@pytest.mark.parametrize("batch_size,seq_len,d_model,seed", [(2, 3, 4, 42)])
 def mlp_test(batch_size: int, seq_len: int, d_model: int, seed: int):
     """Run the MLP with an expected input."""
     comm = MPI.COMM_WORLD
