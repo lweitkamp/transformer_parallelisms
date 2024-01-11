@@ -17,10 +17,10 @@ class MLP:
         """Broadcast x to all devices, multiply x by scattered weights and
         sum the results."""
         x = broadcast(x)
-        
+
         y = x @ weights["A"]
         z = y @ weights["B"]
-        
+
         out = all_reduce(z, reduction=MPI.SUM)
         return out
 
