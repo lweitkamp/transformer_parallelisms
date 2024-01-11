@@ -31,7 +31,9 @@ class Attention:
         
         attention = softmax(np.einsum("bshm, bzhm -> bhsz", q, k), axis=1)
         y = np.einsum("bhss, bshm -> bshm", attention, v)
-        z = np.einsum("bshm, mhd -> bsd", y, weights["B"])
+
+        print(y.shape, weights["B"].shape)
+        z = np.einsum("bshm, hmd -> bsd", y, weights["B"])
         
         # All-reduce.
         out = all_reduce(z, reduction=MPI.SUM)
@@ -50,5 +52,5 @@ class Attention:
             "Q": scatter_init(qkv_shape, rng, axis=1),
             "K": scatter_init(qkv_shape, rng, axis=1),
             "V": scatter_init(qkv_shape, rng, axis=1),
-            "B": scatter_init(b_shape, rng, axis=1),
+            "B": scatter_init(b_shape, rng, axis=0),
         }
