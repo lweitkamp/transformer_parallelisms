@@ -2,6 +2,7 @@ import numpy as np
 from mpi4py import MPI
 
 from world_utils.tensor import scatter_init, all_reduce, broadcast
+from world_utils.world_info import get_rank
 
 
 def softmax(x: np.ndarray, axis: int = 0) -> np.ndarray:
@@ -23,18 +24,16 @@ class Attention:
         """Broadcast x to all devices, multiply x by scattered weights and
         sum the results."""
         x = broadcast(x)
-        
+
         # b: batch, s: seq len, d: d_model, h: num heads, m: d_hidden
         q = np.einsum("bsd, dhm -> bshm", x, weights["Q"])
         k = np.einsum("bsd, dhm -> bshm", x, weights["K"])
         v = np.einsum("bsd, dhm -> bshm", x, weights["V"])
-        
-        attention = softmax(np.einsum("bshm, bzhm -> bhsz", q, k), axis=1)
-        y = np.einsum("bhss, bshm -> bshm", attention, v)
 
-        print(y.shape, weights["B"].shape)
+        attention = softmax(np.einsum("bshm, bzhm -> bhsz", q, k), axis=-1)
+        y = np.einsum("bhss, bshm -> bshm", attention, v)
         z = np.einsum("bshm, hmd -> bsd", y, weights["B"])
-        
+
         # All-reduce.
         out = all_reduce(z, reduction=MPI.SUM)
         return out
