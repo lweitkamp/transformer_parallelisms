@@ -1,9 +1,9 @@
 import pytest
-from mpi4py import MPI
 import numpy as np
 
 from megatron_lm.attention import Attention
 from world_utils.world_info import get_rank
+from world_utils.tensor import broadcast_init
 
 
 @pytest.mark.parametrize(
@@ -18,7 +18,6 @@ def attention_test(
     seed: int,
 ):
     """Run the MLP with an expected input."""
-    comm = MPI.COMM_WORLD
     random_state = np.random.default_rng(seed)
 
     weights = Attention(
@@ -27,8 +26,7 @@ def attention_test(
     ).init_weights(rng=random_state)
 
     # Init and broadcast input.
-    x = random_state.random((batch_size, seq_len, d_model)) if get_rank() == 0 else None
-    x = comm.bcast(x, root=0)
+    x = broadcast_init((batch_size, seq_len, d_model), random_state)
 
     # Init expected output.
     x_out = np.array([

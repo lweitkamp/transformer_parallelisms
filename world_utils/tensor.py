@@ -4,19 +4,50 @@ from mpi4py import MPI
 from world_utils.world_info import get_rank, get_world_size
 
 
+def broadcast_init(
+    shape: tuple[int, ...],
+    rng: np.random.Generator,
+    dtype: str = 'float',
+) -> np.ndarray:
+    """Initiate a tensor with a given shape and broadcast it
+    to all devices.
+
+    Args:
+        shape (tuple[int, ...]): Desired tensor shape.
+        rng (np.random.Generator): NumPy random state.
+        dtype (str): desired data type.
+
+    Returns:
+        A tensor that is broadcasted to all devices.
+    """
+    comm = MPI.COMM_WORLD
+    x = rng.random(shape, dtype=dtype) if get_rank() == 0 else None
+    x = comm.bcast(x, root=0)
+    return x
+
+
 def scatter_init(
     shape: tuple[int, ...],
     rng: np.random.Generator,
     axis: int,
     dtype: str = 'float',
 ) -> np.ndarray:
-    """Initiate a tensor and scatter it across an axis."""
+    """Initiate a tensor with a given shape and scatter it
+    to all devices split on `axis`.
 
+    Args:
+        shape (tuple[int, ...]): Desired tensor shape.
+        rng (np.random.Generator): NumPy random state.
+        dtype (str): desired data type.
+
+    Returns:
+        A tensor that is broadcasted to all devices.
+    """
     comm = MPI.COMM_WORLD
 
     tensor = None
     if get_rank() == 0:
-        data = rng.random(shape)
+        data = rng.random(shape, dtype=dtype)
         arrs = np.split(data, get_world_size(), axis=axis)
         raveled = [np.ravel(arr) for arr in arrs]
 
