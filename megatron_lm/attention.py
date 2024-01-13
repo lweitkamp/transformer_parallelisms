@@ -2,7 +2,6 @@ import numpy as np
 from mpi4py import MPI
 
 from world_utils.tensor import scatter_init, all_reduce, broadcast
-from world_utils.world_info import get_rank
 
 
 def softmax(x: np.ndarray, axis: int = 0) -> np.ndarray:
