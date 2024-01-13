@@ -7,10 +7,10 @@ from world_utils.tensor import broadcast_init
 
 
 @pytest.mark.parametrize(
-        "batch_size,seq_len,d_model,seed",
+        "batch_size,seq_len,d_model,n_heads,seed",
         [(1, 2, 16, 4, 42)],
 )
-def attention_test(
+def test_attention(
     batch_size: int,
     seq_len: int,
     d_model: int,

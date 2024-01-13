@@ -7,7 +7,7 @@ from world_utils.tensor import broadcast_init
 
 
 @pytest.mark.parametrize("batch_size,seq_len,d_model,seed", [(2, 3, 4, 42)])
-def mlp_test(batch_size: int, seq_len: int, d_model: int, seed: int):
+def test_mlp(batch_size: int, seq_len: int, d_model: int, seed: int):
     """Run the MLP with an expected input."""
     random_state = np.random.default_rng(seed)
     weights = MLP(d_model=d_model).init_weights(rng=random_state)
