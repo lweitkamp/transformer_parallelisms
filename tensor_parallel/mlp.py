@@ -7,7 +7,8 @@ from world_utils.tensor import scatter_init, all_reduce, broadcast
 
 
 class MLP:
-    """A multi-layer perceptron layer."""
+    """A multi-layer perceptron layer. We use ReLU instead of GELU
+    for simplicity."""
     def __init__(self, d_model: int, d_hidden: Optional[int] = None):
         self.d_model = d_model
         self.d_hidden = d_hidden or d_model*4
@@ -18,13 +19,13 @@ class MLP:
         sum the results."""
         x = broadcast(x)
 
-        y = x @ weights["A"]
+        y = np.maximum(0, x @ weights["A"])
         z = y @ weights["B"]
 
         out = all_reduce(z, reduction=MPI.SUM)
         return out
 
-    def backward(self):
+    def backward(self, weights: dict):
         """Backward pass through the MLP."""
         raise NotImplementedError
 

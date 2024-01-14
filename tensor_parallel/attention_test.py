@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from megatron_lm.attention import Attention
+from tensor_parallel.attention import Attention
 from world_utils.world_info import get_rank
 from world_utils.tensor import broadcast_init
 
@@ -42,6 +42,5 @@ def test_attention(
 
     # # Forward pass and check only on root.
     out_all = Attention.forward(weights, x)
-
     if get_rank() == 0:
         np.testing.assert_almost_equal(out_all, x_out)

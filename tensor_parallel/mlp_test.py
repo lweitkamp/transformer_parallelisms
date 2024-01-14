@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from megatron_lm.mlp import MLP
+from tensor_parallel.mlp import MLP
 from world_utils.world_info import get_rank
 from world_utils.tensor import broadcast_init
 
