@@ -3,7 +3,7 @@ from typing import Optional
 import numpy as np
 from mpi4py import MPI
 
-from world_utils.tensor import scatter_init, all_reduce, broadcast
+from world_utils.tensor import scatter_init, all_reduce
 
 
 class MLP:
@@ -15,10 +15,7 @@ class MLP:
 
     @staticmethod
     def forward(weights: dict, x: np.ndarray) -> np.ndarray:
-        """Broadcast x to all devices, multiply x by scattered weights and
-        sum the results."""
-        x = broadcast(x)
-
+        """..."""
         y = np.maximum(0, x @ weights["A"])
         z = y @ weights["B"]
 

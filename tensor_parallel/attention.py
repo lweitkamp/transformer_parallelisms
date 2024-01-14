@@ -1,10 +1,10 @@
 import numpy as np
 from mpi4py import MPI
 
-from world_utils.tensor import scatter_init, all_reduce, broadcast
+from world_utils.tensor import scatter_init, all_reduce
 
 
-def softmax(x: np.ndarray, axis: int = 0) -> np.ndarray:
+def softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:
     """Return the softmax of x along the given axis."""
     x_ = np.exp(x - np.max(x, axis=axis, keepdims=True))
     return x_ / x_.sum(axis=axis, keepdims=True)
@@ -22,8 +22,6 @@ class Attention:
     def forward(weights: dict, x: np.ndarray) -> np.ndarray:
         """Broadcast x to all devices, multiply x by scattered weights and
         sum the results."""
-        x = broadcast(x)
-
         # b: batch, s: seq len, d: d_model, h: num heads, m: d_hidden
         q = np.einsum("bsd, dhm -> bshm", x, weights["Q"])
         k = np.einsum("bsd, dhm -> bshm", x, weights["K"])
