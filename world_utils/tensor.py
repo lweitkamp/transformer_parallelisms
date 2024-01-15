@@ -79,7 +79,10 @@ def all_reduce(
     return np.zeros_like(gathered_result, dtype=dtype)
 
 
-def broadcast(input_tensor: np.ndarray):
-    """Broadcast an array"""
+def all_gather(
+    scattered_source: np.ndarray,
+    axis: int,
+) -> np.ndarray:
     comm = MPI.COMM_WORLD
-    return comm.bcast(input_tensor, root=0)
+    comm.Gatherv(sendbuf, recbuf, root=0)
+    pass
