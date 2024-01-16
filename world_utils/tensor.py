@@ -77,12 +77,3 @@ def all_reduce(
         return gathered_result
 
     return np.zeros_like(gathered_result, dtype=dtype)
-
-
-def all_gather(
-    scattered_source: np.ndarray,
-    axis: int,
-) -> np.ndarray:
-    comm = MPI.COMM_WORLD
-    comm.Gatherv(sendbuf, recbuf, root=0)
-    pass
