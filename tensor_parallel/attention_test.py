@@ -3,7 +3,7 @@ import numpy as np
 
 from tensor_parallel.attention import Attention
 from world_utils.world_info import get_rank
-from world_utils.tensor import broadcast_init
+from world_utils.tensor import broadcast
 
 
 @pytest.mark.parametrize(
@@ -26,7 +26,10 @@ def test_attention(
     ).init_weights(rng=random_state)
 
     # Init and broadcast input.
-    x = broadcast_init((batch_size, seq_len, d_model), random_state)
+    x = None
+    if get_rank() == 0:
+        x = random_state.random((batch_size, seq_len, d_model))
+    x = broadcast(x)
 
     # Init expected output.
     x_out = np.array([

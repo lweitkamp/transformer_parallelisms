@@ -3,11 +3,11 @@ from mpi4py import MPI
 
 from world_utils.world_info import get_rank, get_world_size
 
+from typing import Callable
 
-def broadcast_init(
-    shape: tuple[int, ...],
-    rng: np.random.Generator,
-    dtype: str = 'float',
+
+def broadcast(
+    tensor: Callable,
 ) -> np.ndarray:
     """Initiate a tensor with a given shape and broadcast it
     to all devices.
@@ -21,8 +21,7 @@ def broadcast_init(
         A tensor that is broadcasted to all devices.
     """
     comm = MPI.COMM_WORLD
-    x = rng.random(shape, dtype=dtype) if get_rank() == 0 else None
-    x = comm.bcast(x, root=0)
+    x = comm.bcast(tensor, root=0)
     return x
 
 

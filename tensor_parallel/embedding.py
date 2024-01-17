@@ -1,4 +1,5 @@
 import numpy as np
+from mpi4py import MPI
 
 from world_utils.tensor import scatter_init, all_reduce
 from world_utils.world_info import get_rank
@@ -27,19 +28,19 @@ class InputEmbedding:
         # Figure out token valid range for this specific embedding chunk.
         chunk_start = get_rank() * weights["E"].shape[1]
         chunk_end = chunk_start + weights["E"].shape[1]
-        mask = tokens < chunk_start | tokens >= chunk_end
+        mask = np.logical_or(tokens < chunk_start, tokens >= chunk_end)
 
         # Set tokens to chunk range, mask tokens outside range.
         tokens = tokens - chunk_start
         tokens[mask] = 0
 
         # Take the correct embeddings and mask outside range.
-        embedded_tokens = np.take(weights, tokens, axis=1)
-        embedded_tokens[mask, ...] = 0.0
+        embedded_tokens = np.take(weights["E"].T, tokens, axis=0)
+        embedded_tokens[mask, :] = 0.0
 
         # All-reduce, ensuring that the masked embeddings here
         # will be overwritten by the true embeddings elsewhere.
-        embedded_tokens = all_reduce(embedded_tokens)
+        embedded_tokens = all_reduce(embedded_tokens, reduction=MPI.SUM)
         return embedded_tokens
 
     def init_weights(self, rng):
