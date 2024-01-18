@@ -63,6 +63,26 @@ def scatter_init(
     return tensor_scattered
 
 
+def reduce(
+    tensor: np.ndarray,
+    reduction: MPI.Op = MPI.SUM,
+) -> np.ndarray:
+    comm = MPI.COMM_WORLD
+
+    output = None
+    if get_rank() == 0:
+        output = np.empty_like(tensor)
+
+    comm.Reduce(
+        tensor,
+        output,
+        op=reduction,
+        root=0,
+    )
+
+    return output
+
+
 def all_reduce(
     scattered_source: np.ndarray,
     reduction: MPI.Op,

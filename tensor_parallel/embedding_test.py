@@ -1,16 +1,16 @@
 import pytest
 import numpy as np
 
-from tensor_parallel.embedding import InputEmbedding
+from tensor_parallel.embedding import InputEmbedding, OutputEmbedding
 from world_utils.world_info import get_rank
-from world_utils.tensor import broadcast
+from world_utils.tensor import broadcast, reduce
 
 
 @pytest.mark.parametrize(
     "batch_size,seq_len,vocab_size,d_model,seed",
     [(2, 3, 20, 4, 42)],
 )
-def test_embedding(
+def test_input_embedding(
     batch_size: int,
     seq_len: int,
     vocab_size: int,
@@ -50,3 +50,35 @@ def test_embedding(
         np.testing.assert_almost_equal(out_all, x_out)
 
 
+@pytest.mark.parametrize(
+    "batch_size,seq_len,vocab_size,d_model,seed",
+    [(2, 3, 20, 4, 42)],
+)
+def test_output_embedding(
+    batch_size: int,
+    seq_len: int,
+    vocab_size: int,
+    d_model: int,
+    seed: int,
+):
+    """Run the Embedding with an expected input."""
+    random_state = np.random.default_rng(seed)
+    weights = InputEmbedding(
+        d_model=d_model,
+        vocab_size=vocab_size,
+    ).init_weights(rng=random_state)
+
+    # Init and broadcast input.
+    tokens = None
+    if get_rank() == 0:
+        tokens = random_state.random(
+            size=(batch_size, seq_len, d_model),
+        )
+    tokens = broadcast(tokens)
+
+    # Forward pass and check only on root.
+    out_all = OutputEmbedding.forward(weights, tokens)
+    out_all = reduce(out_all)
+
+    if get_rank() == 0:
+        np.testing.assert_almost_equal(out_all.sum(), 110.46088402258374)

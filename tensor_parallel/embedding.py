@@ -49,3 +49,25 @@ class InputEmbedding:
         return {
             "E": scatter_init((self.d_model, self.vocab_size), rng, axis=1),
         }
+
+
+class OutputEmbedding:
+    """The output embedding of the model (produces logits)."""
+
+    @staticmethod
+    def forward(weights: dict, tokens: np.ndarray) -> np.ndarray:
+        """Given the embedding table, un-embed the tokens into logits.
+
+        Embedding weights are parallelized along the vocab dim (columns).
+        We keep the output parallelized for the softmax + cross-entropy combo,
+        this saves us from all-reducing the entire vocab size.
+
+        Arguments:
+            weights: The embedding table at key `E`.
+            tokens (B, S, D): A batch B of tokens S of size D.
+
+        Returns:
+            Token logits.
+        """
+        y = tokens @ weights["E"]
+        return y
