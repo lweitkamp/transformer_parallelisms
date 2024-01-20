@@ -2,8 +2,7 @@ import pytest
 import numpy as np
 
 from tensor_parallel.attention import Attention
-from world_utils.world_info import get_rank
-from world_utils.tensor import broadcast
+import numpy_distributed as ndist
 
 
 @pytest.mark.parametrize(
@@ -26,10 +25,8 @@ def test_attention(
     ).init_weights(rng=random_state)
 
     # Init and broadcast input.
-    x = None
-    if get_rank() == 0:
-        x = random_state.random((batch_size, seq_len, d_model))
-    x = broadcast(x)
+    x = random_state.random((batch_size, seq_len, d_model))
+    x = ndist.broadcast(x)
 
     # Init expected output.
     x_out = np.array([
@@ -45,5 +42,9 @@ def test_attention(
 
     # # Forward pass and check only on root.
     out_all = Attention.forward(weights, x)
-    if get_rank() == 0:
+    if ndist.get_rank() == 0:
         np.testing.assert_almost_equal(out_all, x_out)
+
+
+if __name__ == "__main__":
+    test_attention(1, 2, 16, 4, 42)

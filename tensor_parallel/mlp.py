@@ -1,9 +1,8 @@
 from typing import Optional
 
 import numpy as np
-from mpi4py import MPI
 
-from world_utils.tensor import scatter_init, all_reduce
+import numpy_distributed as ndist
 
 
 class MLP:
@@ -18,9 +17,8 @@ class MLP:
         """..."""
         y = np.maximum(0, x @ weights["A"])
         z = y @ weights["B"]
-
-        out = all_reduce(z, reduction=MPI.SUM)
-        return out
+        ndist.all_reduce(z)
+        return z
 
     def backward(self, weights: dict):
         """Backward pass through the MLP."""
@@ -30,6 +28,6 @@ class MLP:
         """Initiate weights for the MLP. This specific MLP has two
         weight matrices, no bias."""
         return {
-            "A": scatter_init((self.d_model, self.d_hidden), rng, axis=1),
-            "B": scatter_init((self.d_hidden, self.d_model), rng, axis=0),
+            "A": ndist.scatter_init((self.d_model, self.d_hidden), rng, axis=1),
+            "B": ndist.scatter_init((self.d_hidden, self.d_model), rng, axis=0),
         }

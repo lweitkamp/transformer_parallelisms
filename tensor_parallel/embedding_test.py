@@ -2,8 +2,7 @@ import pytest
 import numpy as np
 
 from tensor_parallel.embedding import InputEmbedding, OutputEmbedding
-from world_utils.world_info import get_rank
-from world_utils.tensor import broadcast, reduce
+import numpy_distributed as ndist
 
 
 @pytest.mark.parametrize(
@@ -25,14 +24,12 @@ def test_input_embedding(
     ).init_weights(rng=random_state)
 
     # Init and broadcast input.
-    tokens = None
-    if get_rank() == 0:
-        tokens = random_state.integers(
-            low=0,
-            high=vocab_size,
-            size=(batch_size, seq_len),
-        )
-    tokens = broadcast(tokens)
+    tokens = random_state.integers(
+        low=0,
+        high=vocab_size,
+        size=(batch_size, seq_len),
+    )
+    tokens = ndist.broadcast(tokens)
 
     # Init expected output.
     x_out = np.array([
@@ -46,7 +43,7 @@ def test_input_embedding(
 
     # Forward pass and check only on root.
     out_all = InputEmbedding.forward(weights, tokens)
-    if get_rank() == 0:
+    if ndist.get_rank() == 0:
         np.testing.assert_almost_equal(out_all, x_out)
 
 
@@ -69,16 +66,14 @@ def test_output_embedding(
     ).init_weights(rng=random_state)
 
     # Init and broadcast input.
-    tokens = None
-    if get_rank() == 0:
-        tokens = random_state.random(
-            size=(batch_size, seq_len, d_model),
-        )
-    tokens = broadcast(tokens)
+    tokens = random_state.random(
+        size=(batch_size, seq_len, d_model),
+    )
+    tokens = ndist.broadcast(tokens)
 
     # Forward pass and check only on root.
     out_all = OutputEmbedding.forward(weights, tokens)
-    out_all = reduce(out_all)
+    ndist.reduce(out_all)
 
-    if get_rank() == 0:
+    if ndist.get_rank() == 0:
         np.testing.assert_almost_equal(out_all.sum(), 110.46088402258374)

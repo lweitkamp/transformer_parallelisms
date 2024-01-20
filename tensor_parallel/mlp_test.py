@@ -2,8 +2,7 @@ import pytest
 import numpy as np
 
 from tensor_parallel.mlp import MLP
-from world_utils.world_info import get_rank
-from world_utils.tensor import broadcast
+import numpy_distributed as ndist
 
 
 @pytest.mark.parametrize("batch_size,seq_len,d_model,seed", [(2, 3, 4, 42)])
@@ -13,10 +12,8 @@ def test_mlp(batch_size: int, seq_len: int, d_model: int, seed: int):
     weights = MLP(d_model=d_model).init_weights(rng=random_state)
 
     # Init and broadcast input.
-    x = None
-    if get_rank() == 0:
-        x = random_state.random((batch_size, seq_len, d_model))
-    x = broadcast(x)
+    x = random_state.random((batch_size, seq_len, d_model))
+    x = ndist.broadcast(x)
 
     # Init expected output.
     x_out = np.array([
@@ -30,5 +27,5 @@ def test_mlp(batch_size: int, seq_len: int, d_model: int, seed: int):
 
     # Forward pass and check only on root.
     out_all = MLP.forward(weights, x)
-    if get_rank() == 0:
+    if ndist.get_rank() == 0:
         np.testing.assert_almost_equal(out_all, x_out)

@@ -1,7 +1,6 @@
 import numpy as np
-from mpi4py import MPI
 
-from world_utils.tensor import scatter_init, all_reduce
+import numpy_distributed as ndist
 
 
 def softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:
@@ -30,10 +29,9 @@ class Attention:
         attention = softmax(np.einsum("bshm, bzhm -> bhsz", q, k), axis=-1)
         y = np.einsum("bhss, bshm -> bshm", attention, v)
         z = np.einsum("bshm, hmd -> bsd", y, weights["B"])
+        ndist.all_reduce(z)
 
-        # All-reduce.
-        out = all_reduce(z, reduction=MPI.SUM)
-        return out
+        return z
 
     def backward(self):
         """Backward pass through the Attention layer."""
@@ -45,8 +43,8 @@ class Attention:
         qkv_shape = (self.d_model, self.n_heads, self.d_hidden)
         b_shape = (self.d_hidden, self.n_heads, self.d_model)
         return {
-            "Q": scatter_init(qkv_shape, rng, axis=1),
-            "K": scatter_init(qkv_shape, rng, axis=1),
-            "V": scatter_init(qkv_shape, rng, axis=1),
-            "B": scatter_init(b_shape, rng, axis=0),
+            "Q": ndist.scatter_init(qkv_shape, rng, axis=1),
+            "K": ndist.scatter_init(qkv_shape, rng, axis=1),
+            "V": ndist.scatter_init(qkv_shape, rng, axis=1),
+            "B": ndist.scatter_init(b_shape, rng, axis=0),
         }
