@@ -16,35 +16,50 @@ def test_attention(
     n_heads: int,
     seed: int,
 ):
-    """Run the MLP with an expected input."""
-    random_state = np.random.default_rng(seed)
+    """Create a sharded attention layer and a non-sharded one,
+    scatter the weights of the non-sharded one and ensure that a
+    forward pass with both will yield the same outcome."""
+    random_state = np.random.default_rng(seed + ndist.rank())
 
-    weights = Attention(
+    attention_sharded = Attention(
         d_model=d_model,
-        n_heads=n_heads,
-    ).init_weights(rng=random_state)
+        n_heads_chunk=n_heads // ndist.world_size(),
+        d_hidden=n_heads // d_model,
+        rng=random_state,
+    )
+
+    # Create an attention layer that has the 'full' parameter shape
+    # and scatter the weights to all devices.
+    attention = Attention(
+        d_model=d_model,
+        n_heads_chunk=n_heads,
+        d_hidden=n_heads // d_model,
+        rng=random_state,
+    )
+    ndist.scatter(
+        tensor=attention_sharded.q,
+        scatter_list=np.split(attention.q, ndist.world_size(), 1)
+    )
+    ndist.scatter(
+        tensor=attention_sharded.k,
+        scatter_list=np.split(attention.k, ndist.world_size(), 1)
+    )
+    ndist.scatter(
+        tensor=attention_sharded.v,
+        scatter_list=np.split(attention.v, ndist.world_size(), 1)
+    )
+    ndist.scatter(
+        tensor=attention_sharded.b,
+        scatter_list=np.split(attention.b, ndist.world_size(), 0)
+    )
 
     # Init and broadcast input.
     x = random_state.random((batch_size, seq_len, d_model))
     x = ndist.broadcast(x)
 
-    # Init expected output.
-    x_out = np.array([
-        [[3.51835810e+01, 3.58623726e+01, 4.01228824e+01, 3.28495483e+01,
-          3.54062995e+01, 3.52020623e+01, 3.10022348e+01, 2.47532137e+01,
-          3.21282074e+01, 3.55002773e+01, 2.81269164e+01, 2.73963838e+01,
-          3.02861454e+01, 3.68035725e+01, 3.81917009e+01, 4.27970480e+01],
-         [1.17922054e-03, 8.00294625e-04, 1.12230698e-03, 7.86663864e-04,
-          9.03707005e-04, 9.90655111e-04, 7.55695375e-04, 8.36140384e-04,
-          9.34871864e-04, 7.22772077e-04, 5.69110131e-04, 6.04552978e-04,
-          9.31625256e-04, 1.01709381e-03, 9.57672171e-04, 1.20517226e-03]]
-    ]).astype(x.dtype)
-
-    # # Forward pass and check only on root.
-    out_all = Attention.forward(weights, x)
-    if ndist.get_rank() == 0:
-        np.testing.assert_almost_equal(out_all, x_out)
-
-
-if __name__ == "__main__":
-    test_attention(1, 2, 16, 4, 42)
+    # Check that a forward pass with sharded weights yields the same
+    # result as that without sharded weights.
+    np.testing.assert_almost_equal(
+        attention_sharded.forward(x),
+        attention.forward(x),
+    )

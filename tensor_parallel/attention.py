@@ -10,25 +10,32 @@ def softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:
 
 
 class Attention:
-    """A Multi-headed Attention layer. We ignore causal masking
-    for simplicity."""
-    def __init__(self, d_model: int, n_heads: int):
-        self.d_model = d_model
-        self.d_hidden = d_model // n_heads
-        self.n_heads = n_heads
+    """A Multi-headed self-Attention (decoder-only) layer."""
 
-    @staticmethod
-    def forward(weights: dict, x: np.ndarray) -> np.ndarray:
-        """Broadcast x to all devices, multiply x by scattered weights and
-        sum the results."""
+    def __init__(self, d_model: int, n_heads_chunk: int, d_hidden: int, rng):
+        """Initiate weights for the Attention layer. We split across
+        /heads/ to leave the attention values valid."""
+        self.q, self.k, self.v = rng.random(
+            (3, d_model, n_heads_chunk, d_hidden)
+        )
+        self.b = rng.random(
+            (n_heads_chunk, d_hidden, d_model)
+        )
+
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        """Forward pass through the self-attention layer.
+
+        The operations here are scattered on the head dimension, so an
+        all-reduce is required at the end.
+        """
         # b: batch, s: seq len, d: d_model, h: num heads, m: d_hidden
-        q = np.einsum("bsd, dhm -> bshm", x, weights["Q"])
-        k = np.einsum("bsd, dhm -> bshm", x, weights["K"])
-        v = np.einsum("bsd, dhm -> bshm", x, weights["V"])
+        q = np.einsum("bsd, dhm -> bshm", x, self.q)
+        k = np.einsum("bsd, dhm -> bshm", x, self.k)
+        v = np.einsum("bsd, dhm -> bshm", x, self.v)
 
         attention = softmax(np.einsum("bshm, bzhm -> bhsz", q, k), axis=-1)
         y = np.einsum("bhss, bshm -> bshm", attention, v)
-        z = np.einsum("bshm, hmd -> bsd", y, weights["B"])
+        z = np.einsum("bshm, hmd -> bsd", y, self.b)
         ndist.all_reduce(z)
 
         return z
@@ -36,15 +43,3 @@ class Attention:
     def backward(self):
         """Backward pass through the Attention layer."""
         raise NotImplementedError
-
-    def init_weights(self, rng):
-        """Initiate weights for the Attention layer.
-        We split across /heads/ to leave the attention values valid."""
-        qkv_shape = (self.d_model, self.n_heads, self.d_hidden)
-        b_shape = (self.d_hidden, self.n_heads, self.d_model)
-        return {
-            "Q": ndist.scatter_init(qkv_shape, rng, axis=1),
-            "K": ndist.scatter_init(qkv_shape, rng, axis=1),
-            "V": ndist.scatter_init(qkv_shape, rng, axis=1),
-            "B": ndist.scatter_init(b_shape, rng, axis=0),
-        }
