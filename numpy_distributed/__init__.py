@@ -4,4 +4,5 @@ from numpy_distributed.tensor import (
     all_reduce,
     scatter,
     broadcast,
+    gather,
 )

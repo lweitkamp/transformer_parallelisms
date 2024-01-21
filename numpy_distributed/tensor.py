@@ -54,12 +54,11 @@ def all_reduce(
 
 def gather(
     tensor: np.ndarray,
-    gather_list=None,
+    gather_list: list[np.ndarray],
     dst: int = 0,
-    group=None,
-    async_op=False,
 ) -> None:
-    return None
+    gather_list = np.concatenate([np.ravel(x) for x in gather_list])
+    MPI_COMM.Gatherv(gather_list, tensor, root=dst)
 
 
 def all_gather(
@@ -79,4 +78,3 @@ def scatter(
     """..."""
     scatter_list = np.concatenate([np.ravel(x) for x in scatter_list])
     MPI_COMM.Scatterv(scatter_list, tensor, root=src)
-
