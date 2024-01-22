@@ -51,7 +51,7 @@ def test_column_linear(batch_size: int, seq_len: int, d_model: int, seed: int):
     ndist.scatter(column_linear.weight, np.split(linear.weight, world_size, 1))
     ndist.scatter(column_linear.bias, np.split(linear.bias, world_size, 0))
 
-    # Init the input. We need to broadcast it to all devices.
+    # Init the input with the global seed.
     x = global_rng.random((batch_size, seq_len, d_model))
 
     # An all-gather is required to combine the results.
