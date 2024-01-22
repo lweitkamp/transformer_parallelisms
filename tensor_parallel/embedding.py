@@ -5,7 +5,7 @@ import numpy_distributed as ndist
 
 class InputEmbedding:
     """The input embedding lookup-table."""
-    
+
     def __init__(self, d_model: int, vocab_size: int, rng):
         self.e = rng.random((d_model, vocab_size))
 
