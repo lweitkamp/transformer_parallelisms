@@ -9,14 +9,14 @@ MPI_COMM = MPI.COMM_WORLD
 def broadcast(
     tensor: np.ndarray,
     src: int = 0,
-) -> np.ndarray:
+) -> None:
     """Broadcast tensor to all devices.
 
     Args:
         tensor (np.ndarray): NumPy array.
         src (int): Source rank from which to broadcast.
     """
-    return MPI_COMM.bcast(tensor, root=src)
+    np.copyto(tensor, MPI_COMM.bcast(tensor, root=src))
 
 
 def reduce(
@@ -57,17 +57,33 @@ def gather(
     gather_list: list[np.ndarray],
     dst: int = 0,
 ) -> None:
+    """Gather data in gather_list and store in tensor, send to dst."""
     gather_list = np.concatenate([np.ravel(x) for x in gather_list])
     MPI_COMM.Gatherv(gather_list, tensor, root=dst)
 
 
 def all_gather(
-    tensor_list,
-    tensor,
-    group=None,
-    async_op=False,
-):
-    return None
+    output_tensor,
+    tensor_to_gather,
+    axis: int = -1
+) -> None:
+    """Gather data in gather_list and store in tensor, send to all devices.
+
+    TODO: gather is not trivial in ndim>1 so revisit this later. For now,
+    it is implemented as an all-reduce with zero padding.
+    """
+    scatter_size = tensor_to_gather.shape[axis]
+
+    pad_width = [(0, 0)] * len(tensor_to_gather.shape)
+    pad_width[axis] = (
+        ndist.rank() * scatter_size,
+        (ndist.world_size() - 1 - ndist.rank()) * scatter_size,
+    )
+
+    z = np.pad(tensor_to_gather, pad_width=pad_width)
+    all_reduce(z)
+    np.copyto(output_tensor, z)
+    # MPI_COMM.Allgatherv(tensor_to_gather.T, output_tensor)
 
 
 def scatter(
