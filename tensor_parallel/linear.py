@@ -11,6 +11,7 @@ class Linear:
         self.bias = rng.random((d_hidden, ))
 
     def forward(self, x: np.ndarray) -> np.ndarray:
+        """Compute the matrix product x @ W + b."""
         return x @ self.weight + self.bias
 
     def backward(self):
@@ -27,11 +28,6 @@ class ColumnParallelLinear(Linear):
             d_hidden=d_hidden // ndist.world_size(),
             rng=rng,
         )
-
-    def forward(self, x: np.ndarray) -> np.ndarray:
-        """Compute the matrix product x @ W + b. The bias is also scattered
-        and hence we have to add it for every device."""
-        return x @ self.weight + self.bias
 
     def backward(self):
         raise NotImplementedError
@@ -51,7 +47,11 @@ class RowParallelLinear(Linear):
     def forward(self, x: np.ndarray) -> np.ndarray:
         """Compute the matrix product x @ W + b. Since the weights are
         scatterd along the row dimension the bias is identical for each
-        device. Hence, we only add the bias for a single device."""
+        device. Hence, we only add the bias for a single device.
+        
+        Alternatively, we could have inherited the Linear.forward method
+        and subtracted the bias from one of the devices.
+        """
         out = x @ self.weight
 
         if ndist.rank() == 0:
