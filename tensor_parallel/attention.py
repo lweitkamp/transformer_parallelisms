@@ -1,12 +1,7 @@
 import numpy as np
 
 import numpy_distributed as ndist
-
-
-def softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:
-    """Return the softmax of x along the given axis."""
-    x_ = np.exp(x - np.max(x, axis=axis, keepdims=True))
-    return x_ / x_.sum(axis=axis, keepdims=True)
+from tensor_parallel.softmax_cross_entropy import softmax
 
 
 class Attention:
