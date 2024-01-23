@@ -21,7 +21,7 @@ class InputEmbedding:
         return np.take(self.e.T, tokens, axis=0)
 
 
-class VocabParallelEmbedding(InputEmbedding):
+class VocabParallelInputEmbedding(InputEmbedding):
     """The input embedding lookup-table, split over the vocab dim."""
 
     def __init__(self, d_model: int, vocab_size: int, rng):
