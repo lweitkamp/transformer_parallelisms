@@ -6,6 +6,22 @@ import numpy_distributed as ndist
 MPI_COMM = MPI.COMM_WORLD
 
 
+def rank() -> int:
+    return MPI_COMM.Get_rank()
+
+
+def world_size() -> int:
+    """Return the world size, i.e. the number of parallel programs."""
+    return MPI_COMM.Get_size()
+
+
+def assert_divisible(dim: int) -> None:
+    """A simple assert to check that whatever the size of the
+    dimension is, it can be equally divided among devices."""
+    assert dim % world_size() == 0, \
+        f"Cannot divide the dimension {dim} amongst {world_size()} devices."
+
+
 def broadcast(
     tensor: np.ndarray,
     src: int = 0,

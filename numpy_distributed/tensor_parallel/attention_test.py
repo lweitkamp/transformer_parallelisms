@@ -1,13 +1,13 @@
 import pytest
 import numpy as np
 
-from tensor_parallel.attention import Attention, HeadParallelAttention
+from numpy_distributed.tensor_parallel import HeadParallelAttention
+from numpy_sequential import Attention
 import numpy_distributed as ndist
-
 
 @pytest.mark.parametrize(
         "batch_size,seq_len,d_model,n_heads,seed",
-        [(1, 2, 4, 2, 42)],
+        [(1, 2, 4, 2, 42), (2, 4, 8, 4, 42)],
 )
 def test_attention(
     batch_size: int,
@@ -23,7 +23,6 @@ def test_attention(
 
     global_rng = np.random.default_rng(seed)
     local_rng = np.random.default_rng(seed + ndist.rank())
-
     # Create a normal- and a head parallel attention-layer.
     attention = Attention(d_model, n_heads, d_model, global_rng)
     head_attention = HeadParallelAttention(d_model, n_heads, d_model, local_rng)

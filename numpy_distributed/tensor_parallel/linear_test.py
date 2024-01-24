@@ -2,8 +2,8 @@ import pytest
 import numpy as np
 
 import numpy_distributed as ndist
-from tensor_parallel.linear import (
-    Linear,
+from numpy_sequential import Linear
+from numpy_distributed.tensor_parallel import (
     RowParallelLinear,
     ColumnParallelLinear,
 )

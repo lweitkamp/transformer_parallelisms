@@ -2,7 +2,8 @@ import pytest
 import numpy as np
 
 import numpy_distributed as ndist
-from tensor_parallel.mlp import MLP, TensorParallelMLP
+from numpy_distributed.tensor_parallel import TensorParallelMLP
+from numpy_sequential import MLP
 
 
 @pytest.mark.parametrize("batch_size,seq_len,d_model,seed", [(1, 2, 4, 42)])

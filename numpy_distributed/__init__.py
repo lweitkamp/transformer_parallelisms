@@ -1,5 +1,7 @@
-from numpy_distributed.general import rank, world_size, assert_divisible
-from numpy_distributed.tensor import (
+from numpy_distributed.ops import (
+    rank,
+    world_size,
+    assert_divisible,
     reduce,
     all_reduce,
     scatter,
