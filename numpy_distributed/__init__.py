@@ -9,3 +9,12 @@ from numpy_distributed.ops import (
     all_gather,
     gather,
 )
+
+from numpy_distributed.tensor_parallel import (
+    HeadParallelAttention,
+    VocabParallelInputEmbedding,
+    RowParallelLinear,
+    ColumnParallelLinear,
+    TensorParallelMLP,
+    ParallelSoftmaxCrossEntropy,
+)
