@@ -2,7 +2,6 @@ import pytest
 import numpy as np
 
 import numpy_distributed as ndist
-from numpy_distributed.tensor_parallel import TensorParallelMLP
 from numpy_sequential import MLP
 
 
@@ -15,7 +14,7 @@ def test_parallel_mlp(batch_size: int, seq_len: int, d_model: int, seed: int):
 
     # Create a normal- and a row parallel linear-layer.
     mlp = MLP(d_model, d_model * 4, global_rng)
-    parallel_mlp = TensorParallelMLP(d_model, d_model * 4, local_rng)
+    parallel_mlp = ndist.TensorParallelMLP(d_model, d_model * 4, local_rng)
 
     # Scatter the MLP weights.
     ndist.scatter(

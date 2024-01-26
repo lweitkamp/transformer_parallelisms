@@ -3,10 +3,6 @@ import numpy as np
 
 import numpy_distributed as ndist
 from numpy_sequential import Linear
-from numpy_distributed.tensor_parallel import (
-    RowParallelLinear,
-    ColumnParallelLinear,
-)
 
 
 @pytest.mark.parametrize("batch_size,seq_len,d_model,seed", [(1, 2, 4, 42)])
@@ -18,7 +14,7 @@ def test_row_linear(batch_size: int, seq_len: int, d_model: int, seed: int):
 
     # Create a normal- and a row parallel linear-layer.
     linear = Linear(d_model, d_model, global_rng)
-    row_linear = RowParallelLinear(d_model, d_model, local_rng)
+    row_linear = ndist.RowParallelLinear(d_model, d_model, local_rng)
 
     # Scatter the linear layer's weights
     ndist.scatter(row_linear.weight, np.split(linear.weight, world_size, 0))
@@ -45,7 +41,7 @@ def test_column_linear(batch_size: int, seq_len: int, d_model: int, seed: int):
 
     # Create a normal- and a row parallel linear-layer.
     linear = Linear(d_model, d_model, global_rng)
-    column_linear = ColumnParallelLinear(d_model, d_model, local_rng)
+    column_linear = ndist.ColumnParallelLinear(d_model, d_model, local_rng)
 
     # Scatter the linear layer's weights.
     ndist.scatter(column_linear.weight, np.split(linear.weight, world_size, 1))

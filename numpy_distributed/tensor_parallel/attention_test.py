@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 
-from numpy_distributed.tensor_parallel import HeadParallelAttention
 from numpy_sequential import Attention
 import numpy_distributed as ndist
 
@@ -25,7 +24,12 @@ def test_attention(
     local_rng = np.random.default_rng(seed + ndist.rank())
     # Create a normal- and a head parallel attention-layer.
     attention = Attention(d_model, n_heads, d_model, global_rng)
-    head_attention = HeadParallelAttention(d_model, n_heads, d_model, local_rng)
+    head_attention = ndist.HeadParallelAttention(
+        d_model,
+        n_heads,
+        d_model,
+        local_rng,
+    )
 
     # Scatter the attention layer's weights.
     ndist.scatter(head_attention.q, np.split(attention.q, world_size, 1))

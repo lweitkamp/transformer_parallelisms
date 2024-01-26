@@ -3,7 +3,6 @@ import numpy as np
 
 from numpy_sequential import InputEmbedding, OutputEmbedding
 import numpy_distributed as ndist
-from numpy_distributed.tensor_parallel import VocabParallelInputEmbedding
 
 
 @pytest.mark.parametrize(
@@ -27,7 +26,7 @@ def test_parallel_input_embedding(
 
     # Create a normal- and a row parallel linear-layer.
     embedding = InputEmbedding(d_model, vocab_size, global_rng)
-    parallel_embedding = VocabParallelInputEmbedding(
+    parallel_embedding = ndist.VocabParallelInputEmbedding(
         d_model,
         vocab_size,
         local_rng,
@@ -68,7 +67,7 @@ def test_parallel_output_embedding(
 
     # Create a normal- and a row parallel linear-layer.
     embedding = InputEmbedding(d_model, vocab_size, global_rng)
-    parallel_embedding = VocabParallelInputEmbedding(
+    parallel_embedding = ndist.VocabParallelInputEmbedding(
         d_model,
         vocab_size,
         local_rng,
