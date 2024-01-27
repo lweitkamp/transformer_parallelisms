@@ -18,8 +18,9 @@ def world_size() -> int:
 def assert_divisible(dim: int) -> None:
     """A simple assert to check that whatever the size of the
     dimension is, it can be equally divided among devices."""
-    assert dim % world_size() == 0, \
-        f"Cannot divide the dimension {dim} amongst {world_size()} devices."
+    assert (
+        dim % world_size() == 0
+    ), f"Cannot divide the dimension {dim} amongst {world_size()} devices."
 
 
 def broadcast(
@@ -78,11 +79,7 @@ def gather(
     MPI_COMM.Gatherv(gather_list, tensor, root=dst)
 
 
-def all_gather(
-    output_tensor,
-    tensor_to_gather,
-    axis: int = -1
-) -> None:
+def all_gather(output_tensor, tensor_to_gather, axis: int = -1) -> None:
     """Gather data in gather_list and store in tensor, send to all devices.
 
     TODO: gather is not trivial in ndim>1 so revisit this later. For now,

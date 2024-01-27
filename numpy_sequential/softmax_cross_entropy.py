@@ -1,4 +1,5 @@
 import numpy as np
+import numpy_sequential as nseq
 
 
 def softmax(inputs_: np.ndarray, axis: int = -1) -> np.ndarray:
@@ -7,9 +8,9 @@ def softmax(inputs_: np.ndarray, axis: int = -1) -> np.ndarray:
     return x_ / x_.sum(axis=axis, keepdims=True)
 
 
-class SoftmaxCrossEntropy:
+class SoftmaxCrossEntropy(nseq.Layer):
     """Softmax cross-entropy loss function."""
-    
+
     def forward(self, inputs_: np.ndarray, labels: np.ndarray) -> np.ndarray:
         """Calculate the cross-entropy loss given logits (`inputs_`).
 
@@ -21,7 +22,7 @@ class SoftmaxCrossEntropy:
             Cross-entropy loss.
         """
         logits = inputs_[np.arange(len(inputs_)), labels]
-        cross_entropy = - logits + np.log(np.sum(np.exp(inputs_), axis=-1))
+        cross_entropy = -logits + np.log(np.sum(np.exp(inputs_), axis=-1))
         return cross_entropy
 
     def backward(self):

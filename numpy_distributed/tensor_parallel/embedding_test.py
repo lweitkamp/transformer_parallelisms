@@ -75,7 +75,7 @@ def test_parallel_output_embedding(
 
     # Scatter the embedding layer's weights.
     npdist.scatter(parallel_embedding.e, np.split(embedding.e, world_size, 1))
-    
+
     # Create the output embeddings with weight tied from the input embedding.
     output_embedding = OutputEmbedding(weights=embedding.e)
     parallel_output_embedding = OutputEmbedding(weights=parallel_embedding.e)

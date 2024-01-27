@@ -1,5 +1,6 @@
 import numpy as np
-from numpy_sequential.softmax_cross_entropy import softmax
+
+import numpy_sequential as npseq
 
 
 class Attention:
@@ -16,7 +17,7 @@ class Attention:
         k = np.einsum("bsd, dhm -> bshm", inputs_, self.k)
         v = np.einsum("bsd, dhm -> bshm", inputs_, self.v)
 
-        attention = softmax(np.einsum("bshm, bzhm -> bhsz", q, k), axis=-1)
+        attention = npseq.softmax(np.einsum("bshm, bzhm -> bhsz", q, k), axis=-1)
         y = np.einsum("bhss, bshm -> bshm", attention, v)
         z = np.einsum("bshm, hmd -> bsd", y, self.b)
         return z

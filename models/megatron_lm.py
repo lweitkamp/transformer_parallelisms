@@ -16,17 +16,19 @@ class MegatronLM:
         vocab_size: int,
         rng,
     ) -> None:
-
         self.input_embedding = tp.VocabParallelInputEmbedding(
             d_model,
             vocab_size,
             rng,
         )
 
-        self.transformer_blocks = [{
-            "attention": tp.HeadParallelAttention(d_model, n_heads, d_hidden, rng),
-            "mlp": tp.TensorParallelMLP(d_model, d_hidden, rng),
-        } for _ in range(n_layers)]
+        self.transformer_blocks = [
+            {
+                "attention": tp.HeadParallelAttention(d_model, n_heads, d_hidden, rng),
+                "mlp": tp.TensorParallelMLP(d_model, d_hidden, rng),
+            }
+            for _ in range(n_layers)
+        ]
 
         self.output_embedding = tp.VocabParallelOutputEmbedding(
             weights=self.input_embedding.e,

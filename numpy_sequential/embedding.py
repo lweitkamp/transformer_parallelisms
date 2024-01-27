@@ -1,7 +1,8 @@
 import numpy as np
+import numpy_sequential as nseq
 
 
-class InputEmbedding:
+class InputEmbedding(nseq.Layer):
     """The input embedding lookup-table."""
 
     def __init__(self, d_model: int, vocab_size: int, rng):
@@ -9,7 +10,7 @@ class InputEmbedding:
 
     def forward(self, inputs_: np.ndarray) -> np.ndarray:
         """Given an embedding table and input tokens, embed the tokens.
-        
+
         Arguments:
             tokens (B, S): A batch (B) of sequences (S) of integer tokens.
 
@@ -19,7 +20,7 @@ class InputEmbedding:
         return np.take(self.e.T, inputs_, axis=0)
 
 
-class OutputEmbedding:
+class OutputEmbedding(nseq.Layer):
     """The output embedding producing logits. Weights are tied with that
     of the input embedding layer."""
 

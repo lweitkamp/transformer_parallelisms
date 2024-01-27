@@ -4,9 +4,10 @@ import numpy as np
 from numpy_sequential import Attention
 import numpy_distributed as npdist
 
+
 @pytest.mark.parametrize(
-        "batch_size,seq_len,d_model,n_heads,seed",
-        [(1, 2, 4, 2, 42), (2, 4, 8, 4, 42)],
+    "batch_size,seq_len,d_model,n_heads,seed",
+    [(1, 2, 4, 2, 42), (2, 4, 8, 4, 42)],
 )
 def test_attention(
     batch_size: int,

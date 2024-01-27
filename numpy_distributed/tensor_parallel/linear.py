@@ -34,7 +34,7 @@ class RowParallelLinear(Linear):
         """Compute the matrix product x @ W + b. Since the weights are
         scatterd along the row dimension the bias is identical for each
         device. Hence, we only add the bias for a single device.
-        
+
         Alternatively, we could have inherited the Linear.forward method
         and subtracted the bias from one of the devices.
         """

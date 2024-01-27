@@ -4,7 +4,7 @@ from numpy_sequential import MLP
 
 class TensorParallelMLP(MLP):
     """Megatron-LM style Multi-Layered Perceptron.
-    
+
     This module should be followed by an all-reduce layer.
     """
 
