@@ -22,7 +22,7 @@ def test_attention(
     world_size = npdist.world_size()
 
     global_rng = np.random.default_rng(seed)
-    local_rng = np.random.default_rng(seed + npdist.rank())
+    local_rng = np.random.default_rng(seed + npdist.rank() + 1)
     # Create a normal- and a head parallel attention-layer.
     attention = Attention(d_model, n_heads, d_model, global_rng)
     head_attention = npdist.HeadParallelAttention(

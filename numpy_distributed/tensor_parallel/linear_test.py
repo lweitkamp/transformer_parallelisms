@@ -10,7 +10,7 @@ def test_row_linear(batch_size: int, seq_len: int, d_model: int, seed: int):
     world_size = npdist.world_size()
 
     global_rng = np.random.default_rng(seed)
-    local_rng = np.random.default_rng(seed + npdist.rank())
+    local_rng = np.random.default_rng(seed + npdist.rank() + 1)
 
     # Create a normal- and a row parallel linear-layer.
     linear = Linear(d_model, d_model, global_rng)

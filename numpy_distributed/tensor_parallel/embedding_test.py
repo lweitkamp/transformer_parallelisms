@@ -22,7 +22,7 @@ def test_parallel_input_embedding(
     world_size = npdist.world_size()
 
     global_rng = np.random.default_rng(seed)
-    local_rng = np.random.default_rng(seed + npdist.rank())
+    local_rng = np.random.default_rng(seed + npdist.rank() + 1)
 
     # Create a normal- and a row parallel linear-layer.
     embedding = InputEmbedding(d_model, vocab_size, global_rng)
