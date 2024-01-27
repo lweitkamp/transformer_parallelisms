@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from numpy_sequential import Attention
-import numpy_distributed as ndist
+import numpy_distributed as npdist
 
 @pytest.mark.parametrize(
         "batch_size,seq_len,d_model,n_heads,seed",
@@ -18,13 +18,13 @@ def test_attention(
     """Create a sharded attention layer and a non-sharded one,
     scatter the weights of the non-sharded one and ensure that a
     forward pass with both will yield the same outcome."""
-    world_size = ndist.world_size()
+    world_size = npdist.world_size()
 
     global_rng = np.random.default_rng(seed)
-    local_rng = np.random.default_rng(seed + ndist.rank())
+    local_rng = np.random.default_rng(seed + npdist.rank())
     # Create a normal- and a head parallel attention-layer.
     attention = Attention(d_model, n_heads, d_model, global_rng)
-    head_attention = ndist.HeadParallelAttention(
+    head_attention = npdist.HeadParallelAttention(
         d_model,
         n_heads,
         d_model,
@@ -32,16 +32,16 @@ def test_attention(
     )
 
     # Scatter the attention layer's weights.
-    ndist.scatter(head_attention.q, np.split(attention.q, world_size, 1))
-    ndist.scatter(head_attention.k, np.split(attention.k, world_size, 1))
-    ndist.scatter(head_attention.v, np.split(attention.v, world_size, 1))
-    ndist.scatter(head_attention.b, np.split(attention.b, world_size, 0))
+    npdist.scatter(head_attention.q, np.split(attention.q, world_size, 1))
+    npdist.scatter(head_attention.k, np.split(attention.k, world_size, 1))
+    npdist.scatter(head_attention.v, np.split(attention.v, world_size, 1))
+    npdist.scatter(head_attention.b, np.split(attention.b, world_size, 0))
 
     # Init the input with the global seed.
     x = global_rng.random((batch_size, seq_len, d_model))
 
     # An all-reduce is required to sum up the individual heads.
     out = head_attention.forward(x)
-    ndist.all_reduce(out)
+    npdist.all_reduce(out)
 
     np.testing.assert_allclose(attention.forward(x), out)

@@ -1,6 +1,6 @@
 import numpy as np
 
-import numpy_distributed as ndist
+import numpy_distributed as npdist
 from numpy_sequential import InputEmbedding
 
 
@@ -10,7 +10,7 @@ class VocabParallelInputEmbedding(InputEmbedding):
     def __init__(self, d_model: int, vocab_size: int, rng):
         super().__init__(
             d_model=d_model,
-            vocab_size=vocab_size // ndist.world_size(),
+            vocab_size=vocab_size // npdist.world_size(),
             rng=rng,
         )
 
@@ -28,7 +28,7 @@ class VocabParallelInputEmbedding(InputEmbedding):
             (Masked) token embeddings.
         """
         # Figure out token valid range for this specific embedding chunk.
-        chunk_start = ndist.rank() * self.e.shape[1]
+        chunk_start = npdist.rank() * self.e.shape[1]
         chunk_end = chunk_start + self.e.shape[1]
         mask = np.logical_or(inputs_ < chunk_start, inputs_ >= chunk_end)
 

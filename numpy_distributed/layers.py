@@ -1,6 +1,6 @@
 import numpy as np
 
-import numpy_distributed as ndist
+import numpy_distributed as npdist
 
 
 class AllReduceForward:
@@ -8,7 +8,7 @@ class AllReduceForward:
 
     def forward(self, inputs_: np.ndarray) -> np.ndarray:
         """All-reduce the inputs in place and return the tensor."""
-        ndist.all_reduce(inputs_)
+        npdist.all_reduce(inputs_)
         return inputs_
 
     def backward(self):

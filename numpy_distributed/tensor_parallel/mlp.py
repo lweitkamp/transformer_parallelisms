@@ -1,11 +1,5 @@
-import numpy as np
-
-import numpy_distributed as ndist
+import numpy_distributed as npdist
 from numpy_sequential import MLP
-from numpy_distributed.tensor_parallel.linear import (
-    RowParallelLinear,
-    ColumnParallelLinear,
-)
 
 
 class TensorParallelMLP(MLP):
@@ -15,20 +9,20 @@ class TensorParallelMLP(MLP):
     """
 
     def __init__(self, d_model: int, d_hidden: int, rng):
-        ndist.assert_divisible(d_model)
-        ndist.assert_divisible(d_hidden)
+        npdist.assert_divisible(d_model)
+        npdist.assert_divisible(d_hidden)
         super().__init__(d_model, d_hidden, rng)
 
-        self.w1 = ColumnParallelLinear(
+        self.w1 = npdist.ColumnParallelLinear(
             d_model=d_model,
             d_hidden=d_hidden,
             rng=rng,
         )
-        self.w2 = RowParallelLinear(
+        self.w2 = npdist.RowParallelLinear(
             d_model=d_hidden,
             d_hidden=d_model,
             rng=rng,
         )
-        
+
     def backward(self):
         raise NotImplementedError

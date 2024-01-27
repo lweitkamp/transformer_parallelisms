@@ -1,6 +1,6 @@
 import numpy as np
 
-import numpy_distributed as ndist
+import numpy_distributed as npdist
 from numpy_sequential import Linear
 
 
@@ -8,10 +8,10 @@ class ColumnParallelLinear(Linear):
     """A linear layer scattered along the column dimension."""
 
     def __init__(self, d_model: int, d_hidden: int, rng):
-        ndist.assert_divisible(d_hidden)
+        npdist.assert_divisible(d_hidden)
         super().__init__(
             d_model=d_model,
-            d_hidden=d_hidden // ndist.world_size(),
+            d_hidden=d_hidden // npdist.world_size(),
             rng=rng,
         )
 
@@ -23,9 +23,9 @@ class RowParallelLinear(Linear):
     """A linear layer scattered along the row dimension."""
 
     def __init__(self, d_model: int, d_hidden: int, rng):
-        ndist.assert_divisible(d_model)
+        npdist.assert_divisible(d_model)
         super().__init__(
-            d_model=d_model // ndist.world_size(),
+            d_model=d_model // npdist.world_size(),
             d_hidden=d_hidden,
             rng=rng,
         )
@@ -40,7 +40,7 @@ class RowParallelLinear(Linear):
         """
         out = inputs_ @ self.weight
 
-        if ndist.rank() == 0:
+        if npdist.rank() == 0:
             out = out + self.bias
 
         return out

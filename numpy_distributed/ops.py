@@ -1,7 +1,7 @@
 import numpy as np
 from mpi4py import MPI
 
-import numpy_distributed as ndist
+import numpy_distributed as npdist
 
 MPI_COMM = MPI.COMM_WORLD
 
@@ -48,7 +48,7 @@ def reduce(
         dst (int): Rank on which we gather the reduction.
         op (MPI.Op): Operation to reduce the tensor.
     """
-    if ndist.rank() == dst:
+    if npdist.rank() == dst:
         MPI_COMM.Reduce(MPI.IN_PLACE, tensor, op=op, root=dst)
     else:
         MPI_COMM.Reduce(tensor, None, op=op, root=dst)
@@ -92,8 +92,8 @@ def all_gather(
 
     pad_width = [(0, 0)] * len(tensor_to_gather.shape)
     pad_width[axis] = (
-        ndist.rank() * scatter_size,
-        (ndist.world_size() - 1 - ndist.rank()) * scatter_size,
+        npdist.rank() * scatter_size,
+        (npdist.world_size() - 1 - npdist.rank()) * scatter_size,
     )
 
     z = np.pad(tensor_to_gather, pad_width=pad_width)

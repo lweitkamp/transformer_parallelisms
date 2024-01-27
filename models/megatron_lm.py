@@ -1,6 +1,6 @@
 import numpy as np
 
-import numpy_distributed as ndist
+import numpy_distributed as npdist
 import tensor_parallel as tp
 
 
@@ -39,12 +39,12 @@ class MegatronLM:
             # Attention part
             x_ = inputs_
             inputs_ = block["attention"].forward(layer_norm.forward(inputs_))
-            ndist.all_reduce(inputs_)
+            npdist.all_reduce(inputs_)
             inputs_ += x_
 
             x_ = inputs_
             inputs_ = block["mlp"].forward(layer_norm.forward(inputs_))
-            ndist.all_reduce(inputs_)
+            npdist.all_reduce(inputs_)
 
         output_embedding = self.output_embedding.forward(inputs_)
         return output_embedding

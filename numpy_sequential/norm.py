@@ -3,9 +3,9 @@ import numpy as np
 
 class LayerNorm:
     """Layer normalization - normalize the inputs over the last dimension."""
-    def __init__(self):
-        self.weight = ...
-        self.bias = ...
+    def __init__(self, d_model: int, rng):
+        self.weight = rng.random((d_model, ))
+        self.bias = rng.random((d_model, ))
 
     def forward(self, inputs_: np.ndarray) -> np.ndarray:
         """Calculate mean and standard deviation of the inputs along the

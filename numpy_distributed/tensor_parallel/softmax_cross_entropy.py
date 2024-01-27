@@ -1,6 +1,6 @@
 import numpy as np
 
-import numpy_distributed as ndist
+import numpy_distributed as npdist
 
 
 class ParallelSoftmaxCrossEntropy:
@@ -24,7 +24,7 @@ class ParallelSoftmaxCrossEntropy:
         batch_size, seq_len, vocab_chunk_shape = inputs_.shape
 
         # Figure out token valid range for this specific embedding chunk.
-        chunk_start = ndist.rank() * vocab_chunk_shape
+        chunk_start = npdist.rank() * vocab_chunk_shape
         chunk_end = chunk_start + vocab_chunk_shape
         mask = np.logical_or(labels < chunk_start, labels >= chunk_end)
 
