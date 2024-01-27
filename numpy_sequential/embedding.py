@@ -1,8 +1,7 @@
 import numpy as np
-import numpy_sequential as nseq
 
 
-class InputEmbedding(nseq.Layer):
+class InputEmbedding:
     """The input embedding lookup-table."""
 
     def __init__(self, d_model: int, vocab_size: int, rng):
@@ -20,7 +19,7 @@ class InputEmbedding(nseq.Layer):
         return np.take(self.e.T, inputs_, axis=0)
 
 
-class OutputEmbedding(nseq.Layer):
+class OutputEmbedding:
     """The output embedding producing logits. Weights are tied with that
     of the input embedding layer."""
 

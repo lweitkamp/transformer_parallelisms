@@ -1,8 +1,7 @@
 import numpy as np
-import numpy_sequential as nseq
 
 
-class LayerNorm(nseq.Layer):
+class LayerNorm:
     """Layer normalization - normalize the inputs over the last dimension."""
 
     def __init__(self, d_model: int, rng):
