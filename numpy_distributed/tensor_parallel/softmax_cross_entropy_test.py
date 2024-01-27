@@ -5,31 +5,32 @@ import numpy_distributed as npdist
 from numpy_sequential import SoftmaxCrossEntropy
 
 
-@pytest.mark.parametrize("batch_size,seq_len,d_model,seed", [(1, 2, 4, 42)])
+@pytest.mark.parametrize("batch_size,seq_len,d_model,seed", [(1, 2, 20, 42)])
 def test_parallel_softmax(
     batch_size: int,
     seq_len: int,
-    d_model: int,
+    vocab_size: int,
     seed: int,
 ):
-    local_rng = np.random.default_rng(seed + npdist.rank())
+    world_size = npdist.world_size()
+    global_rng = np.random.default_rng(seed)
 
     # Create a normal- and a row parallel linear-layer.
     smce = SoftmaxCrossEntropy()
     parallel_smce = npdist.ParallelSoftmaxCrossEntropy()
 
-    # # Scatter the MLP weights.
-    # npdist.scatter(
-    #     parallel_mlp.w1.weight,
-    #     np.split(mlp.w1.weight, world_size, 1),
-    # )
-    # npdist.scatter(
-    #     parallel_mlp.w2.weight,
-    #     np.split(mlp.w2.weight, world_size, 0),
-    # )
-    # npdist.scatter(parallel_mlp.w1.bias, np.split(mlp.w1.bias, world_size, 0))
-    # parallel_mlp.w2.bias = mlp.w2.bias
+    inputs = global_rng.random((batch_size, seq_len, vocab_size))
+    labels = global_rng.integers(0, vocab_size, (batch_size, seq_len))
+    
+    # Scatter the inputs along vocab dim.
+    inputs_scatter = np.zeros((batch_size, seq_len, vocab_size // world_size))
+    npdist.scatter(
+        inputs_scatter,
+        np.split(inputs, world_size, 1)
+    )
+    
 
+    
     # # Init the input with the global seed.
     # x = global_rng.random((batch_size, seq_len, d_model))
 

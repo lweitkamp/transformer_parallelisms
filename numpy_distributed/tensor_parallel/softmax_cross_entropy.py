@@ -6,8 +6,8 @@ import numpy_distributed as npdist
 class ParallelSoftmaxCrossEntropy:
     """Softmax Cross-entropy loss of logits."""
 
-    def forward(self, inputs_: np.ndarray, labels: np.ndarray) -> np.ndarray:
-        """Calculate the cross-entropy loss given logits (`inputs_`).
+    def forward(self, inputs: np.ndarray, labels: np.ndarray) -> np.ndarray:
+        """Calculate the cross-entropy loss given logits (`inputs`).
 
         Logits are parallelized along the vocab dim. To avoid large
         communication of the vocab dim, keep this distributed and calculate
@@ -21,7 +21,11 @@ class ParallelSoftmaxCrossEntropy:
         Returns:
             Cross-entropy loss.
         """
-        batch_size, seq_len, vocab_chunk_shape = inputs_.shape
+        batch_size, seq_len, vocab_chunk_shape = inputs.shape
+
+        # Reshape to make our life easier.
+        inputs = inputs.reshape(batch_size * seq_len, vocab_chunk_shape)
+        labels = labels.reshape(batch_size * seq_len)
 
         # Figure out token valid range for this specific embedding chunk.
         chunk_start = npdist.rank() * vocab_chunk_shape
@@ -32,16 +36,9 @@ class ParallelSoftmaxCrossEntropy:
         labels_masked = labels - chunk_start
         labels_masked[mask] = 0.0
 
-        # Look up the predicted logit value for correct labels.
-        y_pred = inputs_.reshape(-1, vocab_chunk_shape)[
-            np.arange(batch_size * seq_len),
-            labels_masked.reshape(-1),
-        ].reshape(labels_masked.shape)
+        y_pred = inputs[np.arange(batch_size * seq_len), labels]
 
         # Mask the predictions outside the valid range.
         y_pred[mask] = 0.0
-
-        # We need to all-reduce these predictions.
-        # todo: check if the numpy lookup/reshape is a view
-        # or a copy. (Seems like a copy from the strides).
+        
         return
