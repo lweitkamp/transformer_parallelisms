@@ -30,7 +30,7 @@ class RowParallelLinear(Linear):
             rng=rng,
         )
 
-    def forward(self, inputs_: np.ndarray) -> np.ndarray:
+    def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Compute the matrix product x @ W + b. Since the weights are
         scatterd along the row dimension the bias is identical for each
         device. Hence, we only add the bias for a single device.
@@ -38,7 +38,7 @@ class RowParallelLinear(Linear):
         Alternatively, we could have inherited the Linear.forward method
         and subtracted the bias from one of the devices.
         """
-        out = inputs_ @ self.weight
+        out = inputs @ self.weight
 
         if npdist.rank() == 0:
             out = out + self.bias

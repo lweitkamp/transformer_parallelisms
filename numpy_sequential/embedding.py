@@ -7,7 +7,7 @@ class InputEmbedding:
     def __init__(self, d_model: int, vocab_size: int, rng):
         self.e = rng.random((d_model, vocab_size))
 
-    def forward(self, inputs_: np.ndarray) -> np.ndarray:
+    def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Given an embedding table and input tokens, embed the tokens.
 
         Arguments:
@@ -16,7 +16,7 @@ class InputEmbedding:
         Returns:
             Token embeddings.
         """
-        return np.take(self.e.T, inputs_, axis=0)
+        return np.take(self.e.T, inputs, axis=0)
 
 
 class OutputEmbedding:
@@ -26,6 +26,6 @@ class OutputEmbedding:
     def __init__(self, weights: np.ndarray):
         self.e = weights
 
-    def forward(self, inputs_: np.ndarray) -> np.ndarray:
+    def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Calculate the logits through a simple matrix product."""
-        return inputs_ @ self.e
+        return inputs @ self.e

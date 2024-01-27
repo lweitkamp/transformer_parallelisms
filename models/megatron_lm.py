@@ -34,19 +34,19 @@ class MegatronLM:
             weights=self.input_embedding.e,
         )
 
-    def forward(self, inputs_: np.ndarray) -> np.ndarray:
-        inputs_ = self.input_embedding.forward(inputs_)
+    def forward(self, inputs: np.ndarray) -> np.ndarray:
+        inputs = self.input_embedding.forward(inputs)
 
         for block in self.transformer_blocks:
             # Attention part
-            x_ = inputs_
-            inputs_ = block["attention"].forward(layer_norm.forward(inputs_))
-            npdist.all_reduce(inputs_)
-            inputs_ += x_
+            x_ = inputs
+            inputs = block["attention"].forward(layer_norm.forward(inputs))
+            npdist.all_reduce(inputs)
+            inputs += x_
 
-            x_ = inputs_
-            inputs_ = block["mlp"].forward(layer_norm.forward(inputs_))
-            npdist.all_reduce(inputs_)
+            x_ = inputs
+            inputs = block["mlp"].forward(layer_norm.forward(inputs))
+            npdist.all_reduce(inputs)
 
-        output_embedding = self.output_embedding.forward(inputs_)
+        output_embedding = self.output_embedding.forward(inputs)
         return output_embedding

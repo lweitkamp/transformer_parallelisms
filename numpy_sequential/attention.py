@@ -10,12 +10,12 @@ class Attention:
         self.q, self.k, self.v = rng.random((3, d_model, n_heads, d_hidden))
         self.b = rng.random((n_heads, d_hidden, d_model))
 
-    def forward(self, inputs_: np.ndarray) -> np.ndarray:
+    def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Forward pass through the self-attention layer."""
         # b: batch, s: seq len, d: d_model, h: num heads, m: d_hidden
-        q = np.einsum("bsd, dhm -> bshm", inputs_, self.q)
-        k = np.einsum("bsd, dhm -> bshm", inputs_, self.k)
-        v = np.einsum("bsd, dhm -> bshm", inputs_, self.v)
+        q = np.einsum("bsd, dhm -> bshm", inputs, self.q)
+        k = np.einsum("bsd, dhm -> bshm", inputs, self.k)
+        v = np.einsum("bsd, dhm -> bshm", inputs, self.v)
 
         attention = npseq.softmax(np.einsum("bshm, bzhm -> bhsz", q, k), axis=-1)
         y = np.einsum("bhss, bshm -> bshm", attention, v)

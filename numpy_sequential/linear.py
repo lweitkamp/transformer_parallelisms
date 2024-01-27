@@ -8,9 +8,9 @@ class Linear:
         self.weight = rng.random((d_model, d_hidden))
         self.bias = rng.random((d_hidden,))
 
-    def forward(self, inputs_: np.ndarray) -> np.ndarray:
+    def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Compute the matrix product x @ W + b."""
-        return inputs_ @ self.weight + self.bias
+        return inputs @ self.weight + self.bias
 
     def backward(self):
         raise NotImplementedError
