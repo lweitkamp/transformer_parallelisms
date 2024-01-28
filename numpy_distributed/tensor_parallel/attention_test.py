@@ -16,9 +16,9 @@ def test_attention(
     n_heads: int,
     seed: int,
 ):
-    """Create a sharded attention layer and a non-sharded one,
-    scatter the weights of the non-sharded one and ensure that a
-    forward pass with both will yield the same outcome."""
+    """Create a sequential attention layer and scatter the values to a
+    head-parallel version. Compare outputs of a generated input,
+    the outputs should match."""
     world_size = npdist.world_size()
 
     global_rng = np.random.default_rng(seed)
