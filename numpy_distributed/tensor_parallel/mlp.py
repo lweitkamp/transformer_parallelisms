@@ -1,3 +1,5 @@
+import numpy as np
+
 import numpy_distributed as npdist
 from numpy_sequential import MLP
 
@@ -23,6 +25,11 @@ class TensorParallelMLP(MLP):
             d_hidden=d_model,
             rng=rng,
         )
+
+    def forward(self, inputs: np.ndarray) -> np.ndarray:
+        x = super().forward(inputs)
+        npdist.all_reduce(x)
+        return x
 
     def backward(self):
         raise NotImplementedError

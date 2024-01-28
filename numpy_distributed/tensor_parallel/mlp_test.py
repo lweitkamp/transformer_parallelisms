@@ -31,8 +31,4 @@ def test_parallel_mlp(batch_size: int, seq_len: int, d_model: int, seed: int):
     # Init the input with the global seed.
     x = global_rng.random((batch_size, seq_len, d_model))
 
-    # An all-reduce is required to combine the results.
-    parallel_forward = parallel_mlp.forward(x)
-    npdist.all_reduce(parallel_forward)
-
-    np.testing.assert_allclose(mlp.forward(x), parallel_forward)
+    np.testing.assert_allclose(mlp.forward(x), parallel_mlp.forward(x))
