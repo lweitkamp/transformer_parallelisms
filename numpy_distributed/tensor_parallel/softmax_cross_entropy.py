@@ -10,8 +10,10 @@ class ParallelSoftmaxCrossEntropy:
         """Calculate the cross-entropy loss given logits (`inputs`).
 
         Logits are parallelized along the vocab dim. To avoid large
-        communication of the vocab dim, keep this distributed and calculate
-        the cross entropy loss.
+        communication of the vocab dim, we communicate both the logits
+        of shape (B, S) and the sum of the exponents of vocab predictions.
+        That's 2 communications in total, it will be efficient only if the
+        vocab dim is large.
 
         Arguments:
             logits (B, S, V_): A batch (B) of logits S for parallelized vocab
@@ -32,13 +34,21 @@ class ParallelSoftmaxCrossEntropy:
         chunk_end = chunk_start + vocab_chunk_shape
         mask = np.logical_or(labels < chunk_start, labels >= chunk_end)
 
-        # Set tokens to chunk range, mask tokens outside range.
-        labels_masked = labels - chunk_start
-        labels_masked[mask] = 0.0
+        # Set labels to chunk range, mask inputs and labels outside range.
+        labels = labels - chunk_start
+        labels[mask] = 0
 
-        y_pred = inputs[np.arange(batch_size * seq_len), labels]
+        # Gather logits, mask them and communicate the (B, S) values.
+        logits = inputs[np.arange(batch_size * seq_len), labels]
+        logits[mask] = 0
+        npdist.all_reduce(logits)
 
-        # Mask the predictions outside the valid range.
-        y_pred[mask] = 0.0
-        
-        return
+        # Calculate log-sum-exp for the CE loss. Here we first calculate
+        # sum-exp and communicate the (B, S) values.
+        sum_exp = np.sum(np.exp(inputs), axis=-1)
+        npdist.all_reduce(sum_exp)
+
+        cross_entropy = -logits + np.log(sum_exp)
+        cross_entropy = cross_entropy.reshape((batch_size, seq_len))
+
+        return cross_entropy
