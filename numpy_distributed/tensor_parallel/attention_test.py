@@ -1,8 +1,8 @@
-import pytest
 import numpy as np
+import pytest
 
-from numpy_sequential import Attention
 import numpy_distributed as npdist
+from numpy_sequential import Attention
 
 
 @pytest.mark.parametrize(
@@ -41,8 +41,4 @@ def test_attention(
     # Init the input with the global seed.
     x = global_rng.random((batch_size, seq_len, d_model))
 
-    # An all-reduce is required to sum up the individual heads.
-    out = head_attention.forward(x)
-    npdist.all_reduce(out)
-
-    np.testing.assert_allclose(attention.forward(x), out)
+    np.testing.assert_allclose(attention.forward(x), head_attention.forward(x))

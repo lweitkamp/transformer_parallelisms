@@ -1,3 +1,5 @@
+import numpy as np
+
 import numpy_distributed as npdist
 from numpy_sequential import Attention
 
@@ -14,6 +16,11 @@ class HeadParallelAttention(Attention):
             d_hidden=d_hidden,
             rng=rng,
         )
+
+    def forward(self, inputs: np.ndarray) -> np.ndarray:
+        x = super().forward(inputs)
+        npdist.all_reduce(x)
+        return x
 
     def backward(self):
         """Backward pass through the Attention layer."""
