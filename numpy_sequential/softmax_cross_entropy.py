@@ -10,6 +10,8 @@ def softmax(inputs: np.ndarray, axis: int = -1) -> np.ndarray:
 class SoftmaxCrossEntropy:
     """Softmax cross-entropy loss function."""
 
+    ctx: dict = {"inputs": None, "labels": None}
+
     def forward(self, inputs: np.ndarray, labels: np.ndarray) -> np.ndarray:
         """Calculate the cross-entropy loss given logits (`inputs`).
 
@@ -20,6 +22,9 @@ class SoftmaxCrossEntropy:
         Returns:
             Cross-entropy loss.
         """
+        self.ctx["inputs"] = inputs
+        self.ctx["labels"] = labels
+
         batch_size, seq_len, vocab_size = inputs.shape
         inputs = inputs.reshape(batch_size * seq_len, vocab_size)
         labels = labels.reshape(batch_size * seq_len)
@@ -31,4 +36,18 @@ class SoftmaxCrossEntropy:
         return cross_entropy
 
     def backward(self):
-        raise NotImplementedError
+        """Backwards pass of the softmax-ce loss."""
+        inputs = self.ctx["inputs"]
+        labels = self.ctx["labels"]
+        batch_size, seq_len, vocab_size = inputs.shape
+
+        target = np.zeros((batch_size * seq_len, vocab_size))
+        target[np.arange(batch_size * seq_len), labels.reshape(-1)] = 1
+        target = target.reshape((batch_size, seq_len, -1))
+        grads = softmax(inputs) - target
+
+        # Clear cache.
+        self.ctx["inputs"] = None
+        self.ctx["labels"] = None
+
+        return grads
