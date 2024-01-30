@@ -28,8 +28,8 @@ class VocabParallelInputEmbedding(InputEmbedding):
             (Masked) token embeddings.
         """
         # Figure out token valid range for this specific embedding chunk.
-        chunk_start = npdist.rank() * self.e.shape[1]
-        chunk_end = chunk_start + self.e.shape[1]
+        chunk_start = npdist.rank() * self.weights.shape[1]
+        chunk_end = chunk_start + self.weights.shape[1]
         mask = np.logical_or(inputs < chunk_start, inputs >= chunk_end)
 
         # Set tokens to chunk range, mask tokens outside range.
@@ -37,7 +37,7 @@ class VocabParallelInputEmbedding(InputEmbedding):
         inputs[mask] = 0
 
         # Take the correct embeddings and mask outside range.
-        embedded_tokens = np.take(self.e.T, inputs, axis=0)
+        embedded_tokens = np.take(self.weights.T, inputs, axis=0)
         embedded_tokens[mask, :] = 0.0
 
         return embedded_tokens
