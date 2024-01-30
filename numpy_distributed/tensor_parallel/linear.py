@@ -38,7 +38,7 @@ class RowParallelLinear(Linear):
         Alternatively, we could have inherited the Linear.forward method
         and subtracted the bias from one of the devices.
         """
-        out = inputs @ self.weight
+        out = inputs @ self.weights
 
         if npdist.rank() == 0:
             out = out + self.bias
