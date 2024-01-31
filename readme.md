@@ -16,17 +16,11 @@ Run the unit tests:
 mpirun -n 2 python -m pytest numpy_distributed/tensor_parallel/*_test.py
 ```
 
+## Checklist
 
-
-## Model Parallel Strategies
-
-### Tensor Parallel
-Megatron-LM
-
-### Sequence Parallel
-Megatron-LM+
-
-### Pipeline Parallel
-GPipe, tera
-
-## Zero Redundancy
+- [ ] Sequential
+- [ ] Tensor Parallel
+- [ ] Sequence Parallel
+- [ ] Data parallel
+- [ ] Tera Pipeline Parallel
+- [ ] ZeRO?
