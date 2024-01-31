@@ -45,6 +45,9 @@ class OutputEmbedding:
 
     def backward(self, grads: np.ndarray) -> np.ndarray:
         """Perform a backward pass, calculating the gradients."""
-        self.grads["weights"] = np.einsum("bsd, bsv -> dv", self.ctx["inputs"], grads)
+        divisor = np.prod(self.ctx["inputs"].shape[:2])
+        self.grads["weights"] = (
+            np.einsum("bsd, bsv -> dv", self.ctx["inputs"], grads) / divisor
+        )
         self.ctx["inputs"] = None
         return grads @ self.weights.T

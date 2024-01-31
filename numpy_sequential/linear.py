@@ -19,7 +19,10 @@ class Linear:
 
     def backward(self, grads: np.ndarray):
         """Perform a backward pass, calculating the gradients."""
-        self.grads["weights"] = np.einsum("bsm, bsd -> md", self.ctx["inputs"], grads)
-        self.grads["bias"] = grads.sum(axis=(0, 1), keepdims=True)
+        divisor = np.prod(self.ctx["inputs"].shape[:2])
+        self.grads["weights"] = (
+            np.einsum("bsm, bsd -> md", self.ctx["inputs"], grads) / divisor
+        )
+        self.grads["bias"] = grads.sum(axis=(0, 1), keepdims=True) / divisor
         self.ctx["inputs"] = None
         return grads @ self.weights.T
