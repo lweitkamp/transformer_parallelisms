@@ -1,11 +1,22 @@
-# Transformer Parallelisms
+## Transformer Parallelisms
 
-Trying to capture all possible parallelisms used for the Transformer model using NumPy and MPI.
+This repository is an attempt to capture most common forms of transformer parallelization strategies using only [NumPy](https://numpy.org/) and [mpi4py](https://mpi4py.readthedocs.io/en/stable/tutorial.html). The goal is simple: create/add a parallelization strategy and ensure that a (tiny) model can train with it. We are not expecting any performance boost since the model is small and communication between devices will take time.
 
-# Tensor Parallel
-- introduced in Megatron LM
+## Setup
+Install the requirements 
+```bash
+pip install -r requirements.txt
+```
 
-# Sequence Parallel
+## Model Parallel Strategies
 
+### Tensor Parallel
+Megatron-LM
 
-https://arxiv.org/pdf/2205.05198.pdf
+### Sequence Parallel
+Megatron-LM+
+
+### Pipeline Parallel
+GPipe, tera
+
+## Zero Redundancy
