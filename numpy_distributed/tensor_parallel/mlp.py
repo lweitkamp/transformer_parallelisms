@@ -1,7 +1,7 @@
 import numpy as np
 
 import numpy_distributed as npdist
-from numpy_sequential import MLP
+from numpy_sequential import MLP, ReLU
 
 
 class TensorParallelMLP(MLP):
@@ -15,21 +15,13 @@ class TensorParallelMLP(MLP):
         npdist.assert_divisible(d_hidden)
         super().__init__(d_model, d_hidden, rng)
 
-        self.w1 = npdist.ColumnParallelLinear(
-            d_model=d_model,
-            d_hidden=d_hidden,
-            rng=rng,
-        )
-        self.w2 = npdist.RowParallelLinear(
-            d_model=d_hidden,
-            d_hidden=d_model,
-            rng=rng,
-        )
+        self.layers = [
+            npdist.ColumnParallelLinear(d_model=d_model, d_hidden=d_hidden, rng=rng),
+            ReLU(),
+            npdist.RowParallelLinear(d_model=d_hidden, d_hidden=d_model, rng=rng),
+        ]
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         x = super().forward(inputs)
         npdist.all_reduce(x)
         return x
-
-    def backward(self):
-        raise NotImplementedError

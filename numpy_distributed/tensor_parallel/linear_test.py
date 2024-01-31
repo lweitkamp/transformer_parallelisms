@@ -1,5 +1,5 @@
-import pytest
 import numpy as np
+import pytest
 
 import numpy_distributed as npdist
 from numpy_sequential import Linear
@@ -17,7 +17,7 @@ def test_row_linear(batch_size: int, seq_len: int, d_model: int, seed: int):
     row_linear = npdist.RowParallelLinear(d_model, d_model, local_rng)
 
     # Scatter the linear layer's weights
-    npdist.scatter(row_linear.weight, np.split(linear.weight, world_size, 0))
+    npdist.scatter(row_linear.weights, np.split(linear.weights, world_size, 0))
     row_linear.bias = linear.bias
 
     # Init the input. We need to scatter it to devices on the row dim.
@@ -44,7 +44,7 @@ def test_column_linear(batch_size: int, seq_len: int, d_model: int, seed: int):
     column_linear = npdist.ColumnParallelLinear(d_model, d_model, local_rng)
 
     # Scatter the linear layer's weights.
-    npdist.scatter(column_linear.weight, np.split(linear.weight, world_size, 1))
+    npdist.scatter(column_linear.weights, np.split(linear.weights, world_size, 1))
     npdist.scatter(column_linear.bias, np.split(linear.bias, world_size, 0))
 
     # Init the input with the global seed.

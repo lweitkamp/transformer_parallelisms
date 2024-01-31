@@ -1,5 +1,5 @@
-import pytest
 import numpy as np
+import pytest
 
 import numpy_distributed as npdist
 from numpy_sequential import MLP
@@ -18,15 +18,17 @@ def test_parallel_mlp(batch_size: int, seq_len: int, d_model: int, seed: int):
 
     # Scatter the MLP weights.
     npdist.scatter(
-        parallel_mlp.w1.weight,
-        np.split(mlp.w1.weight, world_size, 1),
+        parallel_mlp.layers[0].weights,
+        np.split(mlp.layers[0].weights, world_size, 1),
     )
     npdist.scatter(
-        parallel_mlp.w2.weight,
-        np.split(mlp.w2.weight, world_size, 0),
+        parallel_mlp.layers[2].weights,
+        np.split(mlp.layers[2].weights, world_size, 0),
     )
-    npdist.scatter(parallel_mlp.w1.bias, np.split(mlp.w1.bias, world_size, 0))
-    parallel_mlp.w2.bias = mlp.w2.bias
+    npdist.scatter(
+        parallel_mlp.layers[0].bias, np.split(mlp.layers[0].bias, world_size, 0)
+    )
+    parallel_mlp.layers[2].bias = mlp.layers[2].bias
 
     # Init the input with the global seed.
     x = global_rng.random((batch_size, seq_len, d_model))

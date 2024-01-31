@@ -15,9 +15,6 @@ class ColumnParallelLinear(Linear):
             rng=rng,
         )
 
-    def backward(self):
-        raise NotImplementedError
-
 
 class RowParallelLinear(Linear):
     """A linear layer scattered along the row dimension."""
@@ -44,6 +41,3 @@ class RowParallelLinear(Linear):
             out = out + self.bias
 
         return out
-
-    def backward(self):
-        raise NotImplementedError
