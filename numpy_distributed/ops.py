@@ -41,8 +41,8 @@ def reduce(
     dst: int = 0,
     op: MPI.Op = MPI.SUM,
 ) -> None:
-    """Reduce tensor across all devices and broadcast the result
-    back to a single device.
+    """Reduce tensor across all processes and broadcast the result
+    back to a single process.
 
     Args:
         tensor (np.ndarray): NumPy array.
@@ -59,24 +59,14 @@ def all_reduce(
     tensor: np.ndarray,
     op: MPI.Op = MPI.SUM,
 ) -> None:
-    """Reduce tensor across all devices and broadcast the result
-    back to all devices.
+    """Reduce tensor across all processes and broadcast the result
+    back to all processes.
 
     Args:
         tensor (np.ndarray): NumPy array.
         op (MPI.Op): Operation to reduce the tensor.
     """
     MPI_COMM.Allreduce(MPI.IN_PLACE, tensor, op=op)
-
-
-def gather(
-    tensor: np.ndarray,
-    gather_list: list[np.ndarray],
-    dst: int = 0,
-) -> None:
-    """Gather data in gather_list and store in tensor, send to dst."""
-    gather_list = np.concatenate([np.ravel(x) for x in gather_list])
-    MPI_COMM.Gatherv(gather_list, tensor, root=dst)
 
 
 def all_gather(output_tensor, tensor_to_gather, axis: int = -1) -> None:
@@ -109,8 +99,9 @@ def scatter(
     will be collected in the destination tensor for each process.
 
     Args:
-        tensor (np.ndarray): NumPy array that collects the scattered result.
-        scatter_list (list[np.ndarray]): List of tensors to scatter.
+        source_tensor (np.ndarray): NumPy array that collects the scattered result.
+        destination_tensor (np.ndarray): List of tensors to scatter.
+        axis (int): axis to split source_tensor and scatter the results with.
         src (int): Rank from which we scatter the tensor.
     """
     scatter_list = np.split(source_tensor, world_size(), axis=axis)
