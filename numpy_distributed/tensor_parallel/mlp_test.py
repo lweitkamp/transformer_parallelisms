@@ -7,8 +7,6 @@ from numpy_sequential import MLP
 
 @pytest.mark.parametrize("batch_size,seq_len,d_model,seed", [(1, 2, 4, 42)])
 def test_parallel_mlp(batch_size: int, seq_len: int, d_model: int, seed: int):
-    world_size = npdist.world_size()
-
     global_rng = np.random.default_rng(seed)
     local_rng = np.random.default_rng(seed + npdist.rank() + 1)
 
@@ -17,17 +15,9 @@ def test_parallel_mlp(batch_size: int, seq_len: int, d_model: int, seed: int):
     parallel_mlp = npdist.TensorParallelMLP(d_model, d_model * 4, local_rng)
 
     # Scatter the MLP weights.
-    npdist.scatter(
-        parallel_mlp.layers[0].weights,
-        np.split(mlp.layers[0].weights, world_size, 1),
-    )
-    npdist.scatter(
-        parallel_mlp.layers[2].weights,
-        np.split(mlp.layers[2].weights, world_size, 0),
-    )
-    npdist.scatter(
-        parallel_mlp.layers[0].bias, np.split(mlp.layers[0].bias, world_size, 0)
-    )
+    npdist.scatter(mlp.layers[0].weights, parallel_mlp.layers[0].weights, axis=1)
+    npdist.scatter(mlp.layers[2].weights, parallel_mlp.layers[2].weights, axis=0)
+    npdist.scatter(mlp.layers[0].bias, parallel_mlp.layers[0].bias, axis=0)
     parallel_mlp.layers[2].bias = mlp.layers[2].bias
 
     # Init the input with the global seed.

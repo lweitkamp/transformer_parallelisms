@@ -19,8 +19,6 @@ def test_parallel_input_embedding(
     """Create an embedding layer and a vocab-parallel embedding layer.
     Scatter the embedding layer on the parallel layer and see if
     outputs match on both."""
-    world_size = npdist.world_size()
-
     global_rng = np.random.default_rng(seed)
     local_rng = np.random.default_rng(seed + npdist.rank() + 1)
 
@@ -33,9 +31,7 @@ def test_parallel_input_embedding(
     )
 
     # Scatter the embedding layer's weights.
-    npdist.scatter(
-        parallel_embedding.weights, np.split(embedding.weights, world_size, 1)
-    )
+    npdist.scatter(embedding.weights, parallel_embedding.weights, axis=1)
 
     # Init the input with the global seed.
     x = global_rng.integers(low=0, high=vocab_size, size=(batch_size, seq_len))
@@ -62,8 +58,6 @@ def test_parallel_output_embedding(
     a normal and a parallel input embedding, copy the weights to the output
     variant and check if the input-output for both parallel and sequential
     models agree."""
-    world_size = npdist.world_size()
-
     global_rng = np.random.default_rng(seed)
     local_rng = np.random.default_rng(seed + npdist.rank())
 
@@ -76,9 +70,7 @@ def test_parallel_output_embedding(
     )
 
     # Scatter the embedding layer's weights.
-    npdist.scatter(
-        parallel_embedding.weights, np.split(embedding.weights, world_size, 1)
-    )
+    npdist.scatter(embedding.weights, parallel_embedding.weights, axis=1)
 
     # Create the output embeddings with weight tied from the input embedding.
     output_embedding = OutputEmbedding(weights=embedding.weights)

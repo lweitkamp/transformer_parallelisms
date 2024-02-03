@@ -100,10 +100,19 @@ def all_gather(output_tensor, tensor_to_gather, axis: int = -1) -> None:
 
 
 def scatter(
-    tensor: np.ndarray,
-    scatter_list: list[np.ndarray],
-    src=0,
+    source_tensor: np.ndarray,
+    destination_tensor: np.ndarray,
+    axis: int,
+    src: int = 0,
 ) -> None:
-    """..."""
+    """We scatter the source tensor along an axis and the scattered result
+    will be collected in the destination tensor for each process.
+
+    Args:
+        tensor (np.ndarray): NumPy array that collects the scattered result.
+        scatter_list (list[np.ndarray]): List of tensors to scatter.
+        src (int): Rank from which we scatter the tensor.
+    """
+    scatter_list = np.split(source_tensor, world_size(), axis=axis)
     scatter_list = np.concatenate([np.ravel(x) for x in scatter_list])
-    MPI_COMM.Scatterv(scatter_list, tensor, root=src)
+    MPI_COMM.Scatterv(scatter_list, destination_tensor, root=src)

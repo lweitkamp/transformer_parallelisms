@@ -23,7 +23,7 @@ def test_parallel_softmax(
 
     # Scatter the inputs along vocab dim.
     inputs_scatter = np.zeros((batch_size, seq_len, vocab_size // world_size))
-    npdist.scatter(inputs_scatter, np.split(inputs, world_size, 2))
+    npdist.scatter(inputs, inputs_scatter, axis=2)
 
     # Forward through the parallel layer, all-reduce is already occuring
     # inside of it.
