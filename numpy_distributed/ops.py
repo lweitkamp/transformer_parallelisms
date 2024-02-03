@@ -69,23 +69,28 @@ def all_reduce(
     MPI_COMM.Allreduce(MPI.IN_PLACE, tensor, op=op)
 
 
-def all_gather(output_tensor, tensor_to_gather, axis: int = -1) -> None:
-    """Gather data in gather_list and store in tensor, send to all devices.
+def all_gather(
+    source_tensor,
+    destination_tensor,
+    axis: int = -1,
+) -> None:
+    """Each process sends their source tensor. Root will gather and combine and
+    send to all processes.
 
     TODO: gather is not trivial in ndim>1 so revisit this later. For now,
     it is implemented as an all-reduce with zero padding.
     """
-    scatter_size = tensor_to_gather.shape[axis]
+    scatter_size = source_tensor.shape[axis]
 
-    pad_width = [(0, 0)] * len(tensor_to_gather.shape)
+    pad_width = [(0, 0)] * len(source_tensor.shape)
     pad_width[axis] = (
         npdist.rank() * scatter_size,
         (npdist.world_size() - 1 - npdist.rank()) * scatter_size,
     )
 
-    z = np.pad(tensor_to_gather, pad_width=pad_width)
+    z = np.pad(source_tensor, pad_width=pad_width)
     all_reduce(z)
-    np.copyto(output_tensor, z)
+    np.copyto(destination_tensor, z)
     # MPI_COMM.Allgatherv(tensor_to_gather.T, output_tensor)
 
 

@@ -7,7 +7,6 @@ from numpy_distributed.ops import (
     scatter,
     broadcast,
     all_gather,
-    gather,
 )
 
 from numpy_distributed.tensor_parallel import (

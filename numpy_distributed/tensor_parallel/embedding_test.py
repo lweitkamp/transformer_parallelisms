@@ -81,6 +81,6 @@ def test_parallel_output_embedding(
 
     # An all-gather is required to combine the results.
     parallel_forward = np.zeros((batch_size, seq_len, vocab_size))
-    npdist.all_gather(parallel_forward, parallel_output_embedding.forward(x))
+    npdist.all_gather(parallel_output_embedding.forward(x), parallel_forward)
 
     np.testing.assert_allclose(output_embedding.forward(x), parallel_forward)

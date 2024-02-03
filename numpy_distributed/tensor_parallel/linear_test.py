@@ -50,6 +50,6 @@ def test_column_linear(batch_size: int, seq_len: int, d_model: int, seed: int):
 
     # An all-gather is required to combine the results.
     gathered_forward = np.zeros((batch_size, seq_len, d_model))
-    npdist.all_gather(gathered_forward, column_linear.forward(x))
+    npdist.all_gather(column_linear.forward(x), gathered_forward)
 
     np.testing.assert_allclose(linear.forward(x), gathered_forward)
