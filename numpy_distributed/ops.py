@@ -69,31 +69,6 @@ def all_reduce(
     MPI_COMM.Allreduce(MPI.IN_PLACE, tensor, op=op)
 
 
-def all_gather(
-    source_tensor,
-    destination_tensor,
-    axis: int = -1,
-) -> None:
-    """Each process sends their source tensor. Root will gather and combine and
-    send to all processes.
-
-    TODO: gather is not trivial in ndim>1 so revisit this later. For now,
-    it is implemented as an all-reduce with zero padding.
-    """
-    scatter_size = source_tensor.shape[axis]
-
-    pad_width = [(0, 0)] * len(source_tensor.shape)
-    pad_width[axis] = (
-        npdist.rank() * scatter_size,
-        (npdist.world_size() - 1 - npdist.rank()) * scatter_size,
-    )
-
-    z = np.pad(source_tensor, pad_width=pad_width)
-    all_reduce(z)
-    np.copyto(destination_tensor, z)
-    # MPI_COMM.Allgatherv(tensor_to_gather.T, output_tensor)
-
-
 def scatter(
     source_tensor: np.ndarray,
     destination_tensor: np.ndarray,
@@ -104,11 +79,37 @@ def scatter(
     will be collected in the destination tensor for each process.
 
     Args:
-        source_tensor (np.ndarray): NumPy array that collects the scattered result.
-        destination_tensor (np.ndarray): List of tensors to scatter.
+        source_tensor (np.ndarray): Tensor to scatter along axis.
+        destination_tensor (np.ndarray): Tensor from each process to collect results.
         axis (int): axis to split source_tensor and scatter the results with.
         src (int): Rank from which we scatter the tensor.
     """
     scatter_list = np.split(source_tensor, world_size(), axis=axis)
     scatter_list = np.concatenate([np.ravel(x) for x in scatter_list])
     MPI_COMM.Scatterv(scatter_list, destination_tensor, root=src)
+
+
+def all_gather(
+    source_tensor,
+    destination_tensor,
+    axis: int = -1,
+) -> None:
+    """Gather source tensors from each process and collect it in destination tensor.
+
+    MPI sends a contiguous stream of bytes from each process. To ensure the expected
+    shape is returned in destination tensor, we collect the contiguous stream per
+    process and reshape each accordingly.
+
+    Args:
+        source_tensor (np.ndarray): Source tensor for each process.
+        destination_tensor (np.ndarray): Tensor to gather the results.
+        axis (int): The axis on which the tensor needs to be concatenated.
+    """
+    receiving_buffer = np.empty(np.prod(destination_tensor.shape))
+    MPI_COMM.Allgather(source_tensor, receiving_buffer)
+    receiving_buffer = np.split(receiving_buffer, world_size(), axis)
+    receiving_buffer = np.concatenate(
+        [x.reshape(source_tensor.shape) for x in receiving_buffer],
+        axis=-1,
+    )
+    np.copyto(destination_tensor, receiving_buffer)
