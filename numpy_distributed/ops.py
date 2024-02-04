@@ -90,8 +90,8 @@ def scatter(
 
 
 def all_gather(
-    source_tensor,
-    destination_tensor,
+    source_tensor: np.ndarray,
+    destination_tensor: np.ndarray,
     axis: int = -1,
 ) -> None:
     """Gather source tensors from each process and collect it in destination tensor.
