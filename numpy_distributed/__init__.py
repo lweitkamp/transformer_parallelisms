@@ -2,6 +2,7 @@ from numpy_distributed.ops import (
     rank,
     world_size,
     assert_divisible,
+    reduce_scatter,
     reduce,
     all_reduce,
     scatter,
