@@ -80,7 +80,8 @@ def scatter(
 
     Args:
         source_tensor (np.ndarray): Tensor to scatter along axis.
-        destination_tensor (np.ndarray): Tensor from each process to collect results.
+        destination_tensor (np.ndarray): Tensor from each process to
+            collect results.
         axis (int): axis to split source_tensor and scatter the results with.
         src (int): Rank from which we scatter the tensor.
     """
@@ -94,11 +95,12 @@ def all_gather(
     destination_tensor: np.ndarray,
     axis: int = -1,
 ) -> None:
-    """Gather source tensors from each process and collect it in destination tensor.
+    """Gather source tensors from each process and collect it in the
+    destination tensor.
 
-    MPI sends a contiguous stream of bytes from each process. To ensure the expected
-    shape is returned in destination tensor, we collect the contiguous stream per
-    process and reshape each accordingly.
+    MPI sends a contiguous stream of bytes from each process. To ensure
+    the expected shape is returned in destination tensor, we collect
+    the contiguous stream per process and reshape each accordingly.
 
     Args:
         source_tensor (np.ndarray): Source tensor for each process.
@@ -113,3 +115,26 @@ def all_gather(
         axis=-1,
     )
     np.copyto(destination_tensor, receiving_buffer)
+
+
+def reduce_scatter(
+    source_tensor: np.ndarray,
+    destination_tensor: np.ndarray,
+    op: MPI.Op = MPI.SUM,
+) -> None:
+    """Reduce source tensor to root process and scatter the reduction
+    back to all processes.
+
+    Again the issue with contiguous data streams - but I could not
+    find a workaround for MPI_COMM.Reduce_scatter so I resorted to using
+    the `reduce` and `scatter` operations I defined earlier.
+
+    Args:
+        source_tensor (np.ndarray): Source tensor for each process.
+        destination_tensor (np.ndarray): Tensor to gather the results.
+        op (MPI.Op): Operation to reduce the tensor.
+    """
+    # Maybe soon:
+    # MPI_COMM.Reduce_scatter(source_tensor, destination_tensor, op=op)
+    reduce(source_tensor, dst=0, op=op)
+    scatter(source_tensor, destination_tensor, axis=-1, src=0)
