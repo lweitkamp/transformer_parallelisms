@@ -12,7 +12,7 @@ class SoftmaxCrossEntropy:
 
     ctx: dict = {"inputs": None, "labels": None}
 
-    def forward(self, inputs: np.ndarray, labels: np.ndarray) -> np.ndarray:
+    def forward(self, logits: np.ndarray, labels: np.ndarray) -> np.ndarray:
         """Calculate the cross-entropy loss given logits (`inputs`).
 
         Arguments:
@@ -22,32 +22,37 @@ class SoftmaxCrossEntropy:
         Returns:
             Cross-entropy loss.
         """
-        self.ctx["inputs"] = inputs
+        self.ctx["logits"] = logits
         self.ctx["labels"] = labels
 
-        batch_size, seq_len, vocab_size = inputs.shape
-        inputs = inputs.reshape(batch_size * seq_len, vocab_size)
+        batch_size, seq_len, vocab_size = logits.shape
+
+        max_logit = logits.max(axis=-1, keepdims=True)
+        logits = logits - max_logit
+        logits = logits.reshape(batch_size * seq_len, vocab_size)
         labels = labels.reshape(batch_size * seq_len)
-        logits = inputs[np.arange(batch_size * seq_len), labels]
 
-        cross_entropy = -logits + np.log(np.sum(np.exp(inputs), axis=-1))
-        cross_entropy = cross_entropy.reshape((batch_size, seq_len))
+        predicted_logits = logits[np.arange(batch_size * seq_len), labels]
+        sum_exp_logits = np.sum(np.exp(logits), axis=-1)
 
-        return cross_entropy
+        loss = (np.log(sum_exp_logits) - predicted_logits) / sum_exp_logits
+        loss = loss.reshape((batch_size, seq_len))
+        return loss
 
     def backward(self):
         """Backwards pass of the softmax-ce loss."""
-        inputs = self.ctx["inputs"]
+        inputs = self.ctx["logits"]
         labels = self.ctx["labels"]
         batch_size, seq_len, vocab_size = inputs.shape
 
         target = np.zeros((batch_size * seq_len, vocab_size))
         target[np.arange(batch_size * seq_len), labels.reshape(-1)] = 1
         target = target.reshape((batch_size, seq_len, -1))
-        grads = softmax(inputs) - target
 
         # Clear cache.
         self.ctx["inputs"] = None
         self.ctx["labels"] = None
+
+        grads = softmax(inputs) * (1 - target)
 
         return grads
