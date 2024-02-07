@@ -24,35 +24,38 @@ class SoftmaxCrossEntropy:
         """
         self.ctx["logits"] = logits
         self.ctx["labels"] = labels
-
         batch_size, seq_len, vocab_size = logits.shape
 
-        max_logit = logits.max(axis=-1, keepdims=True)
-        logits = logits - max_logit
         logits = logits.reshape(batch_size * seq_len, vocab_size)
         labels = labels.reshape(batch_size * seq_len)
 
-        predicted_logits = logits[np.arange(batch_size * seq_len), labels]
-        sum_exp_logits = np.sum(np.exp(logits), axis=-1)
+        # Subtract max for stability.
+        max_logit = logits.max(axis=-1, keepdims=True)
+        logits = logits - max_logit
 
-        loss = (np.log(sum_exp_logits) - predicted_logits) / sum_exp_logits
+        predicted_logits = logits[np.arange(batch_size * seq_len), labels]
+        logsumexp_logits = np.log(np.sum(np.exp(logits), axis=-1))
+
+        loss = logsumexp_logits - predicted_logits
         loss = loss.reshape((batch_size, seq_len))
         return loss
 
-    def backward(self):
+    def backward(self, grads: np.ndarray):
         """Backwards pass of the softmax-ce loss."""
-        inputs = self.ctx["logits"]
+        logits = self.ctx["logits"]
         labels = self.ctx["labels"]
-        batch_size, seq_len, vocab_size = inputs.shape
+        batch_size, seq_len, vocab_size = logits.shape
 
-        target = np.zeros((batch_size * seq_len, vocab_size))
-        target[np.arange(batch_size * seq_len), labels.reshape(-1)] = 1
-        target = target.reshape((batch_size, seq_len, -1))
+        logits = logits.reshape(batch_size * seq_len, vocab_size)
+        labels = labels.reshape(batch_size * seq_len)
+
+        probabilities = softmax(logits, axis=-1)
+        probabilities[np.arange(batch_size * seq_len), labels] -= 1 - labels
 
         # Clear cache.
         self.ctx["inputs"] = None
         self.ctx["labels"] = None
 
-        grads = softmax(inputs) * (1 - target)
-
+        grads = probabilities * grads
+        grads = grads.reshape(batch_size, seq_len, vocab_size)
         return grads
