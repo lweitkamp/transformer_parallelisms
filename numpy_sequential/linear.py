@@ -2,52 +2,13 @@ import numpy as np
 
 import string
 
+
 class Linear:
-    """A linear layer."""
-
-    # This linear layer is very annoying
-    # it should be possible to give it arbitrary shape
-    # What is the worst case we got
-    # input (B, S, N, M)
-    # weight: N, M, D
-    # matmul there should be also on N, M x D
-    # If the input has 4 dim it has to be that there is a head and hidden section
-    # if the input has 3 dim it is only hidden
-    # b: batch, s: seq len, d: d_model, h: num heads, m: d_hidden
-
-    def __init__(self, d_model: int, d_hidden: int, rng, dtype=np.float32):
-        self.weights = rng.random((d_model, d_hidden)).astype(dtype)
-        self.bias = rng.random((d_hidden,)).astype(dtype)
-
-        self.ctx = 
-        
-
-    def forward(self, inputs: np.ndarray) -> np.ndarray:
-        """Compute the matrix product x @ W + b."""
-        einsum_map = {1: "d", 2: "hm"}
-
-        "...d, d"
-
-        forward = np.einsum("...{einsum_map[dims]}, ", inputs, self.weights)
-
-        forward = inputs @ self.weights + self.bias
-        self.ctx["inputs"] = inputs
-        return forward
-
-    def backward(self, grads: np.ndarray):
-        """Perform a backward pass, calculating the gradients."""
-        self.grads["weights"] = np.einsum("bsm, bsd -> md", self.ctx["inputs"], grads)
-        self.grads["bias"] = grads.sum(axis=(0, 1))
-        self.ctx["inputs"] = None
-        return grads @ self.weights.T
-
-
-class GeneralizedLinear:
     """Generalized Linear Layer."""
 
     ctx: dict = {"inputs": None}
     grads: dict = {"weight": None, "bias": None}
-    
+
     def __init__(
         self, input_dim: tuple | int, output_dim: tuple | int, rng, dtype=np.float32
     ):
@@ -56,14 +17,39 @@ class GeneralizedLinear:
 
         self.weight = rng.random(size=input_dim + output_dim, dtype=dtype)
         self.bias = np.zeros(output_dim, dtype=dtype)
-        
-        ascii_options = list(string.ascii_letters)
 
-        # map input dim to chars
-        # map output dim to chars
-        einsum = "...{x}, {x}{y} -> ...{y}".format(x=..., y=...)
-        # x == a or abc or abcd? idk
+        # format the einsums for this layer.
+        ascii_options = list(string.ascii_letters)
+        self.in_chr = "".join(ascii_options.pop() for _ in range(len(input_dim)))
+        self.out_chr = "".join(ascii_options.pop() for _ in range(len(output_dim)))
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         self.ctx["inputs"] = inputs
-        return np.einsum(...) + self.bias
+        outputs = np.einsum(
+            f"...{self.in_chr}, ...{self.in_chr}{self.out_chr} -> ...{self.out_chr}",
+            inputs,
+            self.weight,
+        )
+        return outputs + self.bias
+
+    def backward(self, grads: np.ndarray):
+        """Perform a backward pass, calculating the gradients."""
+        sum_dims = tuple([i for i in range(grads.ndim - len(self.in_chr))])
+
+        weight_gradient = np.einsum(
+            f"...{self.in_chr}, ...{self.out_chr} -> ...{self.in_chr}{self.out_chr}",
+            self.ctx["inputs"],
+            grads,
+        ).sum(axis=sum_dims)
+        bias_gradient = grads.sum(axis=sum_dims)
+
+        self.grads["weight"] = weight_gradient
+        self.grads["bias"] = bias_gradient
+
+        self.ctx["inputs"] = None
+        grads = np.einsum(
+            f"...{self.out_chr}, {self.out_chr}{self.in_chr} -> ...{self.in_chr}",
+            grads,
+            self.weight.T,
+        )
+        return grads
