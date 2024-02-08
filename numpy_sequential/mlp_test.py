@@ -9,7 +9,7 @@ from numpy_sequential import MLP
 
 
 @pytest.mark.parametrize(
-    "batch_size,seq_len,vocab_size",
+    "batch_size,seq_len,d_model",
     [(2, 3, 8), (1, 1, 8), (2, 2, 64)],
 )
 def test_mlp(
