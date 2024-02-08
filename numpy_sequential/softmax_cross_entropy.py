@@ -30,8 +30,7 @@ class SoftmaxCrossEntropy:
         labels = labels.reshape(batch_size * seq_len)
 
         # Subtract max for stability.
-        max_logit = logits.max(axis=-1, keepdims=True)
-        logits = logits - max_logit
+        logits = logits - logits.max(axis=-1, keepdims=True)
 
         predicted_logits = logits[np.arange(batch_size * seq_len), labels]
         logsumexp_logits = np.log(np.sum(np.exp(logits), axis=-1))
@@ -40,7 +39,7 @@ class SoftmaxCrossEntropy:
         loss = loss.reshape((batch_size, seq_len))
         return loss
 
-    def backward(self, grads: np.ndarray):
+    def backward(self):
         """Backwards pass of the softmax-ce loss."""
         logits = self.ctx["logits"]
         labels = self.ctx["labels"]
@@ -50,12 +49,10 @@ class SoftmaxCrossEntropy:
         labels = labels.reshape(batch_size * seq_len)
 
         probabilities = softmax(logits, axis=-1)
-        probabilities[np.arange(batch_size * seq_len), labels] -= 1 - labels
+        probabilities[np.arange(batch_size * seq_len), labels] -= 1
 
         # Clear cache.
         self.ctx["inputs"] = None
         self.ctx["labels"] = None
 
-        grads = probabilities * grads
-        grads = grads.reshape(batch_size, seq_len, vocab_size)
-        return grads
+        return probabilities.reshape(batch_size, seq_len, vocab_size)
