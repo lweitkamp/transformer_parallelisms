@@ -1,5 +1,3 @@
-"""Testing sequential layers with pytorch equivalence. Only run this """
-
 import numpy as np
 import pytest
 import torch
@@ -69,7 +67,7 @@ def test_linear(
     linear_forward_torch.sum().backward()
     linear.backward(np.ones((batch_size, seq_len, d_model * 4)))
 
-    # # # Forward pass should be (approx) equal.
+    # Forward pass should be (approx) equal.
     np.testing.assert_allclose(
         linear_forward.reshape(batch_size * seq_len, d_model * 4),
         linear_forward_torch.detach().numpy(),

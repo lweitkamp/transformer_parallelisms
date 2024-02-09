@@ -8,9 +8,9 @@ class MLP:
 
     def __init__(self, d_model: int, d_hidden: int, rng, dtype=np.float32):
         self.layers = [
-            nseq.Linear(d_model=d_model, d_hidden=d_hidden, rng=rng, dtype=dtype),
+            nseq.Linear(d_model, d_hidden, rng=rng, dtype=dtype),
             nseq.ReLU(),
-            nseq.Linear(d_model=d_hidden, d_hidden=d_model, rng=rng, dtype=dtype),
+            nseq.Linear(d_hidden, d_model, rng=rng, dtype=dtype),
         ]
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:

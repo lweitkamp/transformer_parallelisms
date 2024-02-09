@@ -4,10 +4,7 @@ import string
 
 
 class Linear:
-    """Generalized Linear Layer."""
-
-    ctx: dict = {"inputs": None}
-    grads: dict = {"weight": None, "bias": None}
+    """Linear layer mimicking the DenseGeneral from flax - flexible in and out axes."""
 
     def __init__(
         self, input_dim: tuple | int, output_dim: tuple | int, rng, dtype=np.float32
@@ -18,13 +15,16 @@ class Linear:
         self.weight = rng.random(size=input_dim + output_dim, dtype=dtype)
         self.bias = np.zeros(output_dim, dtype=dtype)
 
+        self.ctx: dict = {"inputs": None}
+        self.grads: dict = {"weight": None, "bias": None}
+
         # format the einsums for this layer.
         ascii_options = list(string.ascii_letters)
         self.in_chr = "".join(ascii_options.pop() for _ in range(len(input_dim)))
         self.out_chr = "".join(ascii_options.pop() for _ in range(len(output_dim)))
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
-        self.ctx["inputs"] = inputs
+        self.ctx["inputs"] = np.copy(inputs)
         outputs = np.einsum(
             f"...{self.in_chr}, ...{self.in_chr}{self.out_chr} -> ...{self.out_chr}",
             inputs,
@@ -40,16 +40,15 @@ class Linear:
             f"...{self.in_chr}, ...{self.out_chr} -> ...{self.in_chr}{self.out_chr}",
             self.ctx["inputs"],
             grads,
-        ).sum(axis=sum_dims)
-        bias_gradient = grads.sum(axis=sum_dims)
+        )
 
-        self.grads["weight"] = weight_gradient
-        self.grads["bias"] = bias_gradient
+        self.grads["weight"] = weight_gradient.sum(axis=sum_dims)
+        self.grads["bias"] = grads.sum(axis=sum_dims)
 
-        self.ctx["inputs"] = None
         grads = np.einsum(
             f"...{self.out_chr}, {self.out_chr}{self.in_chr} -> ...{self.in_chr}",
             grads,
             self.weight.T,
         )
+        self.ctx["inputs"] = None
         return grads
