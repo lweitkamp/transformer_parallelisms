@@ -1,5 +1,3 @@
-"""Testing sequential layers with pytorch equivalence. Only run this """
-
 import numpy as np
 import pytest
 import torch

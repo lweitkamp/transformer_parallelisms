@@ -1,10 +1,5 @@
 import numpy as np
-
-
-def softmax(inputs: np.ndarray, axis: int = -1) -> np.ndarray:
-    """Return the softmax of x along the given axis."""
-    x_ = np.exp(inputs - np.max(inputs, axis=axis, keepdims=True))
-    return x_ / x_.sum(axis=axis, keepdims=True)
+import numpy_sequential as npseq
 
 
 class SoftmaxCrossEntropy:
@@ -48,7 +43,7 @@ class SoftmaxCrossEntropy:
         logits = logits.reshape(batch_size * seq_len, vocab_size)
         labels = labels.reshape(batch_size * seq_len)
 
-        probabilities = softmax(logits, axis=-1)
+        probabilities = npseq.softmax(logits, axis=-1)
         probabilities[np.arange(batch_size * seq_len), labels] -= 1
 
         # Clear cache.
