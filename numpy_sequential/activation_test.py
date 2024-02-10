@@ -43,5 +43,3 @@ def test_softmax(
         softmax_forward_torch.detach().numpy(),
         atol=1e-5,
     )
-
-    print("Huzzah")
