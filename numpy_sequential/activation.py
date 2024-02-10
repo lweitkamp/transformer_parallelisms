@@ -42,4 +42,6 @@ class Softmax:
         left = np.einsum("...ij, jk -> ...ijk", inputs_sm, np.eye(seq_len))
         right = np.einsum("...ij, ...ik -> ...ijk", inputs_sm, inputs_sm)
         grads = (grads[..., None, :] @ (left - right)).reshape(inputs_sm.shape)
-        return grads
+
+        self.ctx["inputs_sm"] = None
+        return left - right
