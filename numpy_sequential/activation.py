@@ -24,6 +24,7 @@ def softmax(inputs: np.ndarray, axis: int = -1) -> np.ndarray:
 
 class Softmax:
     def __init__(self, axis: int = -1):
+        assert axis == -1, "no support for any other axis right now."
         self.axis = axis
 
         self.ctx: dict = {"inputs": None}
@@ -31,13 +32,14 @@ class Softmax:
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         outputs = softmax(inputs)
-        self.ctx["outputs"] = np.copy(outputs)
+        self.ctx["inputs_sm"] = np.copy(outputs)
         return outputs
 
-    def backward(self, grads):
-        batch_size, n_heads, seq_len, _ = self.ctx["outputs"].shape
-        attn = self.ctx["outputs"].reshape(batch_size * n_heads, seq_len, seq_len)
-        X = attn * np.diag(np.ones(seq_len))
-        Y = np.matmul(attn.transpose(0, 2, 1), attn)
-        grads = (X - Y).reshape(batch_size, n_heads, seq_len, seq_len)
+    def backward(self, grads: np.ndarray):
+        inputs_sm = self.ctx["inputs_sm"]
+        _, _, seq_len, _ = inputs_sm.shape
+
+        left = np.einsum("...ij, jk -> ...ijk", inputs_sm, np.eye(seq_len))
+        right = np.einsum("...ij, ...ik -> ...ijk", inputs_sm, inputs_sm)
+        grads = (grads[..., None, :] @ (left - right)).reshape(inputs_sm.shape)
         return grads

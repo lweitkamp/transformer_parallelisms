@@ -27,13 +27,14 @@ def test_softmax(
     inputs_torch.requires_grad = True
 
     softmax = Softmax(axis=-1)
+    softmax_torch = torch.nn.Softmax(dim=-1)
 
     # Forward through both models.
     softmax_forward = softmax.forward(inputs)
-    softmax_forward_torch = torch.softmax(inputs_torch, dim=-1)
+    softmax_forward_torch = softmax_torch(inputs_torch)
 
     # Backward through both models.
-    softmax_forward_torch.sum().backward()
+    y = softmax_forward_torch.sum().backward()
     grads = softmax.backward(np.ones((batch_size, n_heads, seq_len, seq_len)))
 
     # Forward pass should be (approx) equal.
