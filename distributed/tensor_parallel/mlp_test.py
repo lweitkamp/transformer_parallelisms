@@ -15,8 +15,8 @@ def test_parallel_mlp(batch_size: int, seq_len: int, d_model: int, seed: int):
     parallel_mlp = npdist.TensorParallelMLP(d_model, d_model * 4, local_rng)
 
     # Scatter the MLP weights.
-    npdist.scatter(mlp.layers[0].weights, parallel_mlp.layers[0].weights, axis=1)
-    npdist.scatter(mlp.layers[2].weights, parallel_mlp.layers[2].weights, axis=0)
+    npdist.scatter(mlp.layers[0].weight, parallel_mlp.layers[0].weight, axis=1)
+    npdist.scatter(mlp.layers[2].weight, parallel_mlp.layers[2].weight, axis=0)
     npdist.scatter(mlp.layers[0].bias, parallel_mlp.layers[0].bias, axis=0)
     parallel_mlp.layers[2].bias = mlp.layers[2].bias
 
