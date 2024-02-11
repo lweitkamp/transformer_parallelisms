@@ -5,7 +5,8 @@ from layers import Linear
 
 
 class ColumnParallelLinear(Linear):
-    """A linear layer scattered along the column dimension."""
+    """A linear layer scattered along the column dimension. If the output
+    dimensions is a tuple, scatter it along the last output dim."""
 
     def __init__(self, input_dim: tuple | int, output_dim: tuple | int, rng):
         output_dim = (
@@ -22,7 +23,8 @@ class ColumnParallelLinear(Linear):
 
 
 class RowParallelLinear(Linear):
-    """A linear layer scattered along the row dimension."""
+    """A linear layer scattered along the row dimension. If the input
+    dimensions is a tuple, scatter it along the last input dim."""
 
     def __init__(self, input_dim: tuple | int, output_dim: tuple | int, rng):
         input_dim = (
