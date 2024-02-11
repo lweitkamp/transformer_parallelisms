@@ -44,4 +44,4 @@ class Softmax:
         grads = (grads[..., None, :] @ (left - right)).reshape(inputs_sm.shape)
 
         self.ctx["inputs_sm"] = None
-        return left - right
+        return grads
