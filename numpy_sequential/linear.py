@@ -46,9 +46,9 @@ class Linear:
         self.grads["bias"] = grads.sum(axis=sum_dims)
 
         grads = np.einsum(
-            f"...{self.out_chr}, {self.out_chr}{self.in_chr} -> ...{self.in_chr}",
+            f"...{self.out_chr}, {self.in_chr}{self.out_chr} -> ...{self.in_chr}",
             grads,
-            self.weight.T,
+            self.weight,
         )
         self.ctx["inputs"] = None
         return grads
