@@ -17,7 +17,7 @@ def test_row_linear(batch_size: int, seq_len: int, d_model: int, seed: int):
     row_linear = npdist.RowParallelLinear(d_model, d_model, local_rng)
 
     # Scatter the linear layer's weights
-    npdist.scatter(linear.weights, row_linear.weights, axis=0)
+    npdist.scatter(linear.weight, row_linear.weight, axis=0)
     row_linear.bias = linear.bias
 
     # Init the input. We need to scatter it to devices on the row dim.
@@ -42,7 +42,7 @@ def test_column_linear(batch_size: int, seq_len: int, d_model: int, seed: int):
     column_linear = npdist.ColumnParallelLinear(d_model, d_model, local_rng)
 
     # Scatter the linear layer's weights.
-    npdist.scatter(linear.weights, column_linear.weights, axis=1)
+    npdist.scatter(linear.weight, column_linear.weight, axis=1)
     npdist.scatter(linear.bias, column_linear.bias, axis=0)
 
     # Init the input with the global seed.

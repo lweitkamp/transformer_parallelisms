@@ -7,11 +7,16 @@ from layers import Linear
 class ColumnParallelLinear(Linear):
     """A linear layer scattered along the column dimension."""
 
-    def __init__(self, d_model: int, d_hidden: int, rng):
-        npdist.assert_divisible(d_hidden)
+    def __init__(self, input_dim: tuple | int, output_dim: tuple | int, rng):
+        output_dim = (
+            list([output_dim]) if isinstance(output_dim, int) else list(output_dim)
+        )
+        npdist.assert_divisible(output_dim[-1])
+        output_dim[-1] = output_dim[-1] // npdist.world_size()
+
         super().__init__(
-            d_model=d_model,
-            d_hidden=d_hidden // npdist.world_size(),
+            input_dim=input_dim,
+            output_dim=tuple(output_dim),
             rng=rng,
         )
 
@@ -19,11 +24,16 @@ class ColumnParallelLinear(Linear):
 class RowParallelLinear(Linear):
     """A linear layer scattered along the row dimension."""
 
-    def __init__(self, d_model: int, d_hidden: int, rng):
-        npdist.assert_divisible(d_model)
+    def __init__(self, input_dim: tuple | int, output_dim: tuple | int, rng):
+        input_dim = (
+            list([input_dim]) if isinstance(input_dim, int) else list(input_dim)
+        )
+        npdist.assert_divisible(input_dim[-1])
+        input_dim[-1] = input_dim[-1] // npdist.world_size()
+
         super().__init__(
-            d_model=d_model // npdist.world_size(),
-            d_hidden=d_hidden,
+            input_dim=tuple(input_dim),
+            output_dim=output_dim,
             rng=rng,
         )
 
@@ -31,13 +41,9 @@ class RowParallelLinear(Linear):
         """Compute the matrix product x @ W + b. Since the weights are
         scatterd along the row dimension the bias is identical for each
         device. Hence, we only add the bias for a single device.
-
-        Alternatively, we could have inherited the Linear.forward method
-        and subtracted the bias from one of the devices.
-        """
-        out = inputs @ self.weights
-
-        if npdist.rank() == 0:
-            out = out + self.bias
-
+        In order to make code more readable we inherin the Linear.forward
+        method and subtracted the bias from one of the devices."""
+        out = super().forward(inputs)
+        if npdist.rank() != 0:
+            out = out - self.bias
         return out
