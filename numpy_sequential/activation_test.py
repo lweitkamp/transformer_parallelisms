@@ -43,3 +43,5 @@ def test_softmax(
         softmax_forward_torch.detach().numpy(),
         atol=1e-5,
     )
+
+    # TODO: can we somehow check the grad_out in pytorch?
