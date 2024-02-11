@@ -20,20 +20,19 @@ class Attention:
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Forward pass through the self-attention layer."""
         self.ctx["inputs"] = inputs
+        seq_len = inputs.shape[1]
+        mask = np.expand_dims(np.tri(seq_len, seq_len, dtype=bool), (0, 1))
 
         q, k, v = np.split(self.in_proj.forward(inputs), 3, axis=2)
 
         attention_weights = np.einsum("bshm, bzhm -> bhsz", q, k) / self.scale
-        _, _, s1, s2 = attention_weights.shape
-        mask = np.expand_dims(np.tri(s1, s2, dtype=bool), (0, 1))
-
         attention_weights = np.where(mask, attention_weights, float("-inf"))
-        attention = self.softmax.forward(attention_weights)
+        attention_weights = self.softmax.forward(attention_weights)
 
-        y = np.einsum("bhss, bshm -> bshm", attention, v)
-        out = self.out_proj.forward(y)
+        attention = np.einsum("bhsz, bzhm -> bshm", attention_weights, v)
+        out = self.out_proj.forward(attention)
 
-        self.ctx["attention"] = np.copy(attention)
+        self.ctx["attention_weights"] = np.copy(attention_weights)
         self.ctx["mask"] = np.copy(mask)
         self.ctx["q"] = np.copy(q)
         self.ctx["k"] = np.copy(k)
@@ -45,7 +44,7 @@ class Attention:
         """Backward pass through the Attention layer."""
         grads = self.out_proj.backward(grads)
 
-        grads_v = np.einsum("bshm, bhsz -> bshm", grads, self.ctx["attention"])
+        grads_v = np.einsum("bshm, bhsz -> bshm", grads, self.ctx["attention_weights"])
         grads = np.einsum("bshm, bzhm -> bhsz", grads, self.ctx["v"])
 
         grads = self.softmax.backward(grads)
@@ -58,7 +57,7 @@ class Attention:
             np.concatenate([grads_q, grads_k, grads_v], axis=2)
         )
 
-        self.ctx["attention"] = None
+        self.ctx["attention_weights"] = None
         self.ctx["mask"] = None
         self.ctx["q"] = None
         self.ctx["k"] = None
