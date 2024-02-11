@@ -8,7 +8,9 @@ class ColumnParallelLinear(Linear):
     """A linear layer scattered along the column dimension. If the output
     dimensions is a tuple, scatter it along the last output dim."""
 
-    def __init__(self, input_dim: tuple | int, output_dim: tuple | int, rng):
+    def __init__(
+        self, input_dim: tuple | int, output_dim: tuple | int, rng, dtype=np.float32
+    ):
         output_dim = (
             list([output_dim]) if isinstance(output_dim, int) else list(output_dim)
         )
@@ -16,9 +18,7 @@ class ColumnParallelLinear(Linear):
         output_dim[-1] = output_dim[-1] // npdist.world_size()
 
         super().__init__(
-            input_dim=input_dim,
-            output_dim=tuple(output_dim),
-            rng=rng,
+            input_dim=input_dim, output_dim=tuple(output_dim), rng=rng, dtype=dtype
         )
 
 
@@ -26,10 +26,10 @@ class RowParallelLinear(Linear):
     """A linear layer scattered along the row dimension. If the input
     dimensions is a tuple, scatter it along the last input dim."""
 
-    def __init__(self, input_dim: tuple | int, output_dim: tuple | int, rng):
-        input_dim = (
-            list([input_dim]) if isinstance(input_dim, int) else list(input_dim)
-        )
+    def __init__(
+        self, input_dim: tuple | int, output_dim: tuple | int, rng, dtype=np.float32
+    ):
+        input_dim = list([input_dim]) if isinstance(input_dim, int) else list(input_dim)
         npdist.assert_divisible(input_dim[-1])
         input_dim[-1] = input_dim[-1] // npdist.world_size()
 
@@ -37,6 +37,7 @@ class RowParallelLinear(Linear):
             input_dim=tuple(input_dim),
             output_dim=output_dim,
             rng=rng,
+            dtype=dtype,
         )
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
