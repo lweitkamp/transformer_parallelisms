@@ -34,16 +34,14 @@ class Linear:
 
     def backward(self, grads: np.ndarray):
         """Perform a backward pass, calculating the gradients."""
-        sum_dims = tuple([i for i in range(grads.ndim - len(self.in_chr))])
-
         weight_gradient = np.einsum(
             f"...{self.in_chr}, ...{self.out_chr} -> ...{self.in_chr}{self.out_chr}",
             self.ctx["inputs"],
             grads,
         )
 
-        self.grads["weight"] = weight_gradient.sum(axis=sum_dims)
-        self.grads["bias"] = grads.sum(axis=sum_dims)
+        self.grads["weight"] = weight_gradient.sum(axis=(0, 1))
+        self.grads["bias"] = grads.sum(axis=(0, 1))
 
         grads = np.einsum(
             f"...{self.out_chr}, {self.in_chr}{self.out_chr} -> ...{self.in_chr}",
