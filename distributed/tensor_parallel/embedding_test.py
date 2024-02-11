@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 
-from numpy_sequential import InputEmbedding, OutputEmbedding
-import numpy_distributed as npdist
+from layers import InputEmbedding, OutputEmbedding
+import distributed as npdist
 
 
 @pytest.mark.parametrize(

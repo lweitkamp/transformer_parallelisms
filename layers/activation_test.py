@@ -1,9 +1,8 @@
 import numpy as np
 import pytest
 import torch
-import torch.nn as nn
 
-from numpy_sequential import Softmax
+from layers import Softmax
 
 
 @pytest.mark.parametrize(

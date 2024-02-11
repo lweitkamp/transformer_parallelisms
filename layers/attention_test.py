@@ -3,7 +3,7 @@ import pytest
 import torch
 import torch.nn as nn
 
-from numpy_sequential import Attention
+from layers import Attention
 
 
 @pytest.mark.parametrize(

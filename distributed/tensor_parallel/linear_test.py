@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-import numpy_distributed as npdist
-from numpy_sequential import Linear
+import distributed as npdist
+from layers import Linear
 
 
 @pytest.mark.parametrize("batch_size,seq_len,d_model,seed", [(1, 2, 4, 42)])

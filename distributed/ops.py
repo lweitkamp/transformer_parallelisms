@@ -1,7 +1,7 @@
 import numpy as np
 from mpi4py import MPI
 
-import numpy_distributed as npdist
+import distributed as npdist
 
 MPI_COMM = MPI.COMM_WORLD
 

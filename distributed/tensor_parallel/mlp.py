@@ -1,7 +1,7 @@
 import numpy as np
 
-import numpy_distributed as npdist
-from numpy_sequential import MLP, ReLU
+import distributed as npdist
+from layers import MLP, ReLU
 
 
 class TensorParallelMLP(MLP):

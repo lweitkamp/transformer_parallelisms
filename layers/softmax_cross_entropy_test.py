@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 import torch
 
-from numpy_sequential import SoftmaxCrossEntropy
+from layers import SoftmaxCrossEntropy
 
 
 @pytest.mark.parametrize(

@@ -1,7 +1,7 @@
 import numpy as np
 
-import numpy_distributed as npdist
-from numpy_sequential import Linear
+import distributed as npdist
+from layers import Linear
 
 
 class ColumnParallelLinear(Linear):

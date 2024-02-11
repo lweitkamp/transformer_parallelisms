@@ -3,7 +3,7 @@ import pytest
 import torch
 import torch.nn as nn
 
-from numpy_sequential import MLP
+from layers import MLP
 
 
 @pytest.mark.parametrize(

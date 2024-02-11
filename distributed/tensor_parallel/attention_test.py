@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-import numpy_distributed as npdist
-from numpy_sequential import Attention
+import distributed as npdist
+from layers import Attention
 
 
 @pytest.mark.parametrize(
@@ -32,6 +32,7 @@ def test_attention(
     )
 
     # Scatter the attention layer's weights.
+    npdist.scatter(attention.in_proj, head_attention.in_proj, axis=1)
     npdist.scatter(attention.q, head_attention.q, axis=1)
     npdist.scatter(attention.k, head_attention.k, axis=1)
     npdist.scatter(attention.v, head_attention.v, axis=1)

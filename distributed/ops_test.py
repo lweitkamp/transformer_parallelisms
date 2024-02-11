@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-import numpy_distributed as npdist
+import distributed as npdist
 
 
 @pytest.mark.parametrize(

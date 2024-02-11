@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-import numpy_distributed as npdist
-from numpy_sequential import SoftmaxCrossEntropy
+import distributed as npdist
+from layers import SoftmaxCrossEntropy
 
 
 @pytest.mark.parametrize("batch_size,seq_len,vocab_size,seed", [(1, 2, 20, 42)])

@@ -1,6 +1,6 @@
 import numpy as np
 
-import numpy_distributed as npdist
+import distributed as npdist
 
 
 class ParallelSoftmaxCrossEntropy:

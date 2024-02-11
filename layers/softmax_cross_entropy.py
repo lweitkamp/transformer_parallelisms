@@ -1,5 +1,5 @@
 import numpy as np
-import numpy_sequential as npseq
+import layers as npseq
 
 
 class SoftmaxCrossEntropy:

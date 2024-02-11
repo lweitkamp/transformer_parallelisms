@@ -1,6 +1,6 @@
 import numpy as np
 
-import numpy_sequential as nseq
+import layers as nseq
 
 
 class MLP:
