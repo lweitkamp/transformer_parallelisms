@@ -24,3 +24,7 @@ def test_parallel_mlp(batch_size: int, seq_len: int, d_model: int, seed: int):
     x = global_rng.random((batch_size, seq_len, d_model))
 
     np.testing.assert_allclose(mlp.forward(x), parallel_mlp.forward(x))
+
+    np.testing.assert_allclose(
+        mlp.backward(np.ones_like(x)), parallel_mlp.backward(np.ones_like(x))
+    )

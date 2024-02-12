@@ -22,6 +22,21 @@ class TensorParallelMLP(MLP):
         ]
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
+        """A forward pass through the MLP. Since the layers themselves
+        are already parallel, here we only need to ensure the all-reduce
+        is performed after the forward pass."""
+
+        # f(x) -->
         x = super().forward(inputs)
+
+        # g(x) -->
         npdist.all_reduce(x)
         return x
+
+    def backward(self, grads: np.ndarray) -> np.ndarray:
+        # g(x) -->
+        grads = super().backward(grads)
+
+        # f(x) -->
+        npdist.all_reduce(grads)
+        return grads
