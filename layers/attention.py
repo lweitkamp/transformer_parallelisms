@@ -15,7 +15,7 @@ class Attention:
 
         self.scale = np.sqrt(d_hidden)
 
-        self.ctx: dict = {"attention": None, "q": None, "k": None, "v": None}
+        self.ctx: dict = {"attention_weights": None, "q": None, "k": None, "v": None}
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Forward pass through the self-attention layer."""
@@ -44,13 +44,21 @@ class Attention:
         """Backward pass through the Attention layer."""
         grads = self.out_proj.backward(grads)
 
-        grads_v = np.einsum("bshm, bhsz -> bshm", grads, self.ctx["attention_weights"])
-        grads = np.einsum("bshm, bzhm -> bhsz", grads, self.ctx["v"])
+        grads_v = np.matmul(
+            self.ctx["attention_weights"].transpose(0, 1, 3, 2),
+            grads.transpose(0, 2, 1, 3),
+        ).transpose(0, 2, 1, 3)
+
+        grads = np.matmul(
+            grads.transpose(0, 2, 1, 3), self.ctx["v"].transpose(0, 2, 3, 1)
+        )
 
         grads = self.softmax.backward(grads)
         grads = np.where(self.ctx["mask"], grads, 0) / self.scale
 
-        grads_q = np.einsum("bhsz, bshm -> bshm", grads, self.ctx["k"])
+        grads_q = np.matmul(grads, self.ctx["k"].transpose(0, 2, 1, 3)).transpose(
+            0, 2, 1, 3
+        )
         grads_k = np.einsum("bhsz, bshm -> bzhm", grads, self.ctx["q"])
 
         grads = self.in_proj.backward(
