@@ -7,12 +7,12 @@ from layers import Attention
 
 
 @pytest.mark.parametrize(
-    "batch_size,seq_len,d_model,n_heads",
+    "batch_size,seq_len,d_model,n_heads,seed",
     [
-        (1, 1, 8, 2),
-        (3, 1, 8, 2),
-        (1, 3, 8, 2),
-        (3, 3, 8, 2),
+        (1, 1, 8, 2, 42),
+        (3, 1, 8, 2, 42),
+        (1, 3, 8, 2, 42),
+        (3, 3, 8, 2, 42),
     ],
 )
 def test_attention(
@@ -20,13 +20,14 @@ def test_attention(
     seq_len: int,
     d_model: int,
     n_heads: int,
+    seed: int,
 ):
     """Test that a forward pass from the Linear module is approximately
     the same with that of a basic torch Linear.
 
     Here we have to make sure the output is the same, but also
     that the collected gradients for each parameter is the same."""
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(seed)
 
     inputs = rng.random((batch_size, seq_len, d_model)).astype(np.float32)
     inputs_torch = torch.from_numpy(inputs)
@@ -73,7 +74,7 @@ def test_attention(
 
     # Gradients calculated should be (approx) equal.
     np.testing.assert_allclose(
-        attention.out_proj.grads["weight"].reshape((8, 8)).T,
+        attention.out_proj.grads["weight"].reshape((d_model, d_model)).T,
         attention_torch.out_proj.weight.grad,
         atol=1e-5,
     )
@@ -83,6 +84,7 @@ def test_attention(
         atol=1e-5,
     )
 
+    print("Huzzah.")
     # TODO: ensure gradients of in_proj are also approx equal.
     # hard to figure out if its an issue with gradient calculation
     # or with float differences adding up.
