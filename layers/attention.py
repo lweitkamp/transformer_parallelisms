@@ -9,7 +9,9 @@ class Attention:
     def __init__(
         self, d_model: int, n_heads: int, d_hidden: int, rng, dtype=np.float32
     ):
-        self.in_proj = npseq.Linear(d_model, (3 * n_heads, d_hidden), rng, dtype)
+        self.q_proj = npseq.Linear(d_model, (n_heads, d_hidden), rng, dtype)
+        self.k_proj = npseq.Linear(d_model, (n_heads, d_hidden), rng, dtype)
+        self.v_proj = npseq.Linear(d_model, (n_heads, d_hidden), rng, dtype)
         self.out_proj = npseq.Linear((n_heads, d_hidden), d_model, rng, dtype)
         self.softmax = npseq.Softmax(axis=-1)
 
@@ -23,12 +25,14 @@ class Attention:
         seq_len = inputs.shape[1]
         mask = np.expand_dims(np.tri(seq_len, seq_len, dtype=bool), (0, 1))
 
-        q, k, v = np.split(self.in_proj.forward(inputs), 3, axis=2)
+        q = self.q_proj.forward(inputs)
+        k = self.k_proj.forward(inputs)
+        v = self.v_proj.forward(inputs)
 
         attention_weights = np.einsum("bshm, bzhm -> bhsz", q, k) / self.scale
         attention_weights = np.where(mask, attention_weights, float("-inf"))
         attention_weights = self.softmax.forward(attention_weights)
-
+        
         attention = np.einsum("bhsz, bzhm -> bshm", attention_weights, v)
         out = self.out_proj.forward(attention)
 
@@ -61,9 +65,14 @@ class Attention:
         )
         grads_k = np.einsum("bhsz, bshm -> bzhm", grads, self.ctx["q"])
 
-        grads = self.in_proj.backward(
-            np.concatenate([grads_q, grads_k, grads_v], axis=2)
+        grads = (
+            self.q_proj.backward(grads_q)
+            + self.k_proj.backward(grads_k)
+            + self.v_proj.backward(grads_v)
         )
+        # grads = self.in_proj.backward(
+        #     np.concatenate([grads_q, grads_k, grads_v], axis=2)
+        # )
 
         self.ctx["attention_weights"] = None
         self.ctx["mask"] = None

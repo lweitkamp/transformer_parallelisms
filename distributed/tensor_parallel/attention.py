@@ -18,10 +18,19 @@ class HeadParallelAttention(Attention):
         )
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
+        """..."""
+        # f(x) -->
         x = super().forward(inputs)
+
+        # g(x) -->
         npdist.all_reduce(x)
         return x
 
-    def backward(self):
+    def backward(self, grads: np.ndarray):
         """Backward pass through the Attention layer."""
-        raise NotImplementedError
+        # g(x) -->
+        grads = super().backward(grads)
+
+        # f(x) -->
+        npdist.all_reduce(grads)
+        return grads
