@@ -32,5 +32,5 @@ class HeadParallelAttention(Attention):
         grads = super().backward(grads)
 
         # f(x) -->
-        npdist.all_reduce(grads)
+        npdist.all_reduce(np.ascontiguousarray(grads))
         return grads
