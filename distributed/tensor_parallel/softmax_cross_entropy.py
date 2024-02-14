@@ -1,6 +1,7 @@
 import numpy as np
 
 import distributed as npdist
+import layers as npseq
 
 
 class ParallelSoftmaxCrossEntropy:
@@ -24,6 +25,8 @@ class ParallelSoftmaxCrossEntropy:
             Cross-entropy loss.
         """
         batch_size, seq_len, vocab_chunk_shape = inputs.shape
+        self.ctx["logits"] = inputs
+        self.ctx["labels"] = labels
 
         # Reshape to make our life easier.
         inputs = inputs.reshape(batch_size * seq_len, vocab_chunk_shape)
@@ -52,3 +55,21 @@ class ParallelSoftmaxCrossEntropy:
         cross_entropy = cross_entropy.reshape((batch_size, seq_len))
 
         return cross_entropy
+
+    def backward(self):
+        """Backwards pass of the softmax-ce loss."""
+        logits = self.ctx["logits"]
+        labels = self.ctx["labels"]
+        batch_size, seq_len, vocab_size = logits.shape
+
+        logits = logits.reshape(batch_size * seq_len, vocab_size)
+        labels = labels.reshape(batch_size * seq_len)
+
+        probabilities = npseq.softmax(logits, axis=-1)
+        probabilities[np.arange(batch_size * seq_len), labels] -= 1
+
+        # Clear cache.
+        self.ctx["inputs"] = None
+        self.ctx["labels"] = None
+
+        return probabilities.reshape(batch_size, seq_len, vocab_size)
