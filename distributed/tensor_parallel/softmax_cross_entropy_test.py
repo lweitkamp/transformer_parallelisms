@@ -27,12 +27,19 @@ def test_parallel_softmax(
 
     # Forward through the parallel layer, all-reduce is already occuring
     # inside of it.
-    parallel_forward = npdist.ParallelSoftmaxCrossEntropy().forward(
-        inputs_scatter,
-        labels,
-    )
+    ce = SoftmaxCrossEntropy()
+    parallel_ce = npdist.ParallelSoftmaxCrossEntropy()
 
     np.testing.assert_allclose(
-        SoftmaxCrossEntropy().forward(inputs, labels),
-        parallel_forward,
+        ce.forward(inputs, labels),
+        parallel_ce.forward(inputs_scatter, labels),
+    )
+
+    # An all-gather is required to combine the results.
+    parallel_backward = np.zeros((batch_size, seq_len, vocab_size))
+    npdist.all_gather(parallel_ce.backward(), parallel_backward)
+
+    np.testing.assert_allclose(
+        ce.backward(),
+        parallel_backward,
     )

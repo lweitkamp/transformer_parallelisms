@@ -1,11 +1,13 @@
 import numpy as np
 
 import distributed as npdist
-import layers as npseq
 
 
 class ParallelSoftmaxCrossEntropy:
     """Softmax Cross-entropy loss of logits."""
+
+    def __init__(self):
+        self.ctx: dict = {"softmax": None, "mask": None, "labels_masked": None}
 
     def forward(self, inputs: np.ndarray, labels: np.ndarray) -> np.ndarray:
         """Calculate the cross-entropy loss given logits (`inputs`).
@@ -53,8 +55,11 @@ class ParallelSoftmaxCrossEntropy:
         cross_entropy = -logits + np.log(sum_exp)
         cross_entropy = cross_entropy.reshape((batch_size, seq_len))
 
-        self.ctx["softmax"] = exp_inputs / sum_exp
-        self.ctx["labels_masked"] = labels
+        self.ctx["softmax"] = (exp_inputs / np.expand_dims(sum_exp, -1)).reshape(
+            batch_size, seq_len, vocab_chunk_shape
+        )
+        self.ctx["mask"] = mask.reshape(batch_size, seq_len)
+        self.ctx["labels_masked"] = labels.reshape(batch_size, seq_len)
 
         return cross_entropy
 
@@ -63,7 +68,12 @@ class ParallelSoftmaxCrossEntropy:
         softmax = self.ctx["softmax"]
         mask = self.ctx["mask"]
         labels_masked = self.ctx["labels_masked"]
-        batch_size, seq_len, chunk_vocab_size = softmax.shape
+
+        batch_size, seq_len, vocab_chunk_shape = softmax.shape
+
+        softmax = softmax.reshape(batch_size * seq_len, vocab_chunk_shape)
+        labels_masked = labels_masked.reshape(batch_size * seq_len)
+        mask = mask.reshape(batch_size * seq_len)
 
         softmax[np.arange(batch_size * seq_len), labels_masked] -= 1 - mask
 
@@ -72,4 +82,4 @@ class ParallelSoftmaxCrossEntropy:
         self.ctx["mask"] = None
         self.ctx["labels_masked"] = None
 
-        return softmax.reshape(batch_size, seq_len, chunk_vocab_size)
+        return softmax.reshape(batch_size, seq_len, vocab_chunk_shape)
