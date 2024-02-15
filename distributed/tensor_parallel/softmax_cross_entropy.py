@@ -25,8 +25,6 @@ class ParallelSoftmaxCrossEntropy:
             Cross-entropy loss.
         """
         batch_size, seq_len, vocab_chunk_shape = inputs.shape
-        self.ctx["logits"] = inputs
-        self.ctx["labels"] = labels
 
         # Reshape to make our life easier.
         inputs = inputs.reshape(batch_size * seq_len, vocab_chunk_shape)
@@ -48,28 +46,30 @@ class ParallelSoftmaxCrossEntropy:
 
         # Calculate log-sum-exp for the CE loss. Here we first calculate
         # sum-exp and communicate the (B, S) values.
-        sum_exp = np.sum(np.exp(inputs), axis=-1)
+        exp_inputs = np.exp(inputs)
+        sum_exp = np.sum(exp_inputs, axis=-1)
         npdist.all_reduce(sum_exp)
 
         cross_entropy = -logits + np.log(sum_exp)
         cross_entropy = cross_entropy.reshape((batch_size, seq_len))
 
+        self.ctx["softmax"] = exp_inputs / sum_exp
+        self.ctx["labels_masked"] = labels
+
         return cross_entropy
 
     def backward(self):
         """Backwards pass of the softmax-ce loss."""
-        logits = self.ctx["logits"]
-        labels = self.ctx["labels"]
-        batch_size, seq_len, vocab_size = logits.shape
+        softmax = self.ctx["softmax"]
+        mask = self.ctx["mask"]
+        labels_masked = self.ctx["labels_masked"]
+        batch_size, seq_len, chunk_vocab_size = softmax.shape
 
-        logits = logits.reshape(batch_size * seq_len, vocab_size)
-        labels = labels.reshape(batch_size * seq_len)
-
-        probabilities = npseq.softmax(logits, axis=-1)
-        probabilities[np.arange(batch_size * seq_len), labels] -= 1
+        softmax[np.arange(batch_size * seq_len), labels_masked] -= 1 - mask
 
         # Clear cache.
-        self.ctx["inputs"] = None
-        self.ctx["labels"] = None
+        self.ctx["softmax"] = None
+        self.ctx["mask"] = None
+        self.ctx["labels_masked"] = None
 
-        return probabilities.reshape(batch_size, seq_len, vocab_size)
+        return softmax.reshape(batch_size, seq_len, chunk_vocab_size)
