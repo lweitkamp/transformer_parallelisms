@@ -33,5 +33,15 @@ def test_layer_norm(
     outputs = norm.forward(inputs)
     outputs_torch = norm_torch.forward(inputs_torch)
 
-    np.testing.assert_allclose(outputs, outputs_torch.detach().numpy(), atol=1e-5)
+    norm.backward(np.ones_like(inputs))
+    outputs_torch.sum().backward()
 
+    np.testing.assert_allclose(outputs, outputs_torch.detach().numpy(), atol=1e-5)
+    np.testing.assert_allclose(
+        norm.grads["weight"], norm_torch.weight.grad.detach().numpy(), atol=1e-5
+    )
+    np.testing.assert_allclose(
+        norm.grads["bias"], norm_torch.bias.grad.detach().numpy(), atol=1e-5
+    )
+
+    # TODO: grad out test.
