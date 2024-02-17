@@ -8,7 +8,10 @@ class LayerNorm:
         self.weight = rng.random((d_model,), dtype=dtype)
         self.bias = np.zeros((d_model,), dtype=dtype)
 
-        self.ctx: dict = {"input_normalized": None}
+        self.d_model = d_model
+        self.eps = 1e-5
+
+        self.ctx: dict = {"input_normalized": None, "std": None}
         self.grads: dict = {"weight": None, "bias": None}
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
@@ -16,21 +19,30 @@ class LayerNorm:
         last dimension and normalize the inputs. Additionally,
         multiply the normalized input with weights and add a bias."""
         mean = inputs.mean(axis=-1, keepdims=True)
-        var = ((inputs - mean) ** 2).mean(axis=-1, keepdims=True)
-        std = np.sqrt(var + 1e-05)
+        var = inputs.var(axis=-1, keepdims=True)
+        normed = (inputs - mean) / np.sqrt(var + self.eps)
 
-        normed = (inputs - mean) / std
-
-        self.ctx["input_normalized"] = normed
+        self.ctx["inputs"] = inputs
+        self.ctx["mean"] = mean
+        self.ctx["var"] = var
 
         return self.weight * normed + self.bias
 
     def backward(self, grads: np.ndarray) -> np.ndarray:
+        """The most straightforward reference is surpisingly from the Triton tutorial
+        https://triton-lang.org/main/getting-started/tutorials/05-layer-norm.html."""
+
+        inputs = self.ctx["inputs"]
+        mean = self.ctx["mean"]
+        var = self.ctx["var"]
+        inputs_normed = (inputs - mean) / np.sqrt(var + self.eps)
+
         self.grads["bias"] = grads.sum(axis=(0, 1))
-        self.grads["weight"] = np.sum(grads * self.ctx["input_normalized"], axis=(0, 1))
+        self.grads["weight"] = np.sum(grads * inputs_normed, axis=(0, 1))
 
-        self.ctx["input_normalized"] = None
-
-        # Modify grads
+        wdy = self.weight * grads
+        c1 = np.sum(inputs_normed * wdy, axis=-1) / self.d_model
+        c2 = wdy.sum(axis=-1) / self.d_model
+        grads = (wdy - c1[..., None] * inputs_normed - c2[..., None]) / inputs.std(axis=-1, keepdims=True)
 
         return grads
