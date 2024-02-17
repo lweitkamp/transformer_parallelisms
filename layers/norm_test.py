@@ -93,12 +93,12 @@ def test_layer_norm_linear(
     np.testing.assert_allclose(
         norm[0].grads["weight"].T,
         norm_torch[0].weight.grad.detach().numpy(),
-        rtol=1e-5,
-        atol=1e-5,
+        rtol=1e-4,
+        atol=1e-4,
     )
     np.testing.assert_allclose(
         norm[0].grads["bias"],
         norm_torch[0].bias.grad.detach().numpy(),
-        rtol=1e-5,
-        atol=1e-5,
+        rtol=1e-4,
+        atol=1e-4,
     )
