@@ -43,6 +43,8 @@ class LayerNorm:
         wdy = self.weight * grads
         c1 = np.sum(inputs_normed * wdy, axis=-1) / self.d_model
         c2 = wdy.sum(axis=-1) / self.d_model
-        grads = (wdy - c1[..., None] * inputs_normed - c2[..., None]) / inputs.std(axis=-1, keepdims=True)
+        grads = (wdy - c1[..., None] * inputs_normed - c2[..., None]) / inputs.std(
+            axis=-1, keepdims=True
+        )
 
         return grads
