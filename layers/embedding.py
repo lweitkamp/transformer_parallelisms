@@ -66,3 +66,6 @@ class PositionalEmbedding:
     def forward(self, inputs: np.ndarray):
         _, seq_len, * _ = inputs.shape
         return self.encoding[:seq_len, :] + inputs
+
+    def backward(self, grads: np.ndarray) -> np.ndarray:
+        return grads
