@@ -51,3 +51,18 @@ class OutputEmbedding:
         )
         self.ctx["inputs"] = None
         return grads @ self.weights.T
+
+
+class PositionalEmbedding:
+    """Technically an encoding, just using fourier features."""
+    def __init__(self, d_model: int, seq_len: int, dtype=np.float32):
+        pos = np.expand_dims(np.arange(0, seq_len), -1)
+        _2i = np.arange(d_model, step=2) / d_model
+
+        self.encoding = np.zeros((seq_len, d_model), dtype=dtype)
+        self.encoding[:, 0::2] = np.sin(pos / (10000 ** _2i))
+        self.encoding[:, 1::2] = np.cos(pos / (10000 ** _2i))
+
+    def forward(self, inputs: np.ndarray):
+        _, seq_len, * _ = inputs.shape
+        return self.encoding[:seq_len, :] + inputs
