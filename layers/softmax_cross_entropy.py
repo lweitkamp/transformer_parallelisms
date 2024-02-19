@@ -6,8 +6,8 @@ from layers.core import Layer
 
 class SoftmaxCrossEntropy(Layer):
     """Softmax cross-entropy loss function."""
-
-    ctx: dict = {"inputs": None, "labels": None}
+    def __init__(self):
+        self.ctx: dict = {"inputs": None, "labels": None}
 
     def forward(self, logits: np.ndarray, labels: np.ndarray) -> np.ndarray:
         """Calculate the cross-entropy loss given logits (`inputs`).
