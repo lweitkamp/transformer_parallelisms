@@ -27,7 +27,7 @@ def test_softmax_cross_entropy(
     ce_loss = SoftmaxCrossEntropy()
     ce_loss_torch = torch.nn.CrossEntropyLoss(reduction="none")
 
-    loss = ce_loss.forward(inputs, labels)
+    loss = ce_loss(inputs, labels)
     loss_torch = ce_loss_torch(inputs_torch, labels_torch)
 
     loss_torch.sum().backward()

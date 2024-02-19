@@ -42,7 +42,7 @@ def test_mlp(
     mlp_torch[2].bias = nn.Parameter(torch.from_numpy(mlp.layers[2].bias))
 
     # Forward through both models.
-    mlp_forward = mlp.forward(inputs)
+    mlp_forward = mlp(inputs)
     mlp_forward_torch = mlp_torch(inputs_torch)
 
     # Backward through both models.

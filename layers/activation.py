@@ -1,7 +1,10 @@
 import numpy as np
 
 
-class ReLU:
+from layers.core import Layer
+
+
+class ReLU(Layer):
     def __init__(self):
         self.ctx: dict = {"inputs": None}
 
@@ -22,13 +25,12 @@ def softmax(inputs: np.ndarray, axis: int = -1) -> np.ndarray:
     return x_ / x_.sum(axis=axis, keepdims=True)
 
 
-class Softmax:
+class Softmax(Layer):
     def __init__(self, axis: int = -1):
         assert axis == -1, "no support for any other axis right now."
         self.axis = axis
 
         self.ctx: dict = {"inputs": None}
-        self.grads: dict = {"weight": None, "bias": None}
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         outputs = softmax(inputs)

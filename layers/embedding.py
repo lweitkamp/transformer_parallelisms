@@ -1,7 +1,9 @@
 import numpy as np
 
+from layers.core import Layer
 
-class InputEmbedding:
+
+class InputEmbedding(Layer):
     """The input embedding lookup-table."""
 
     def __init__(self, d_model: int, vocab_size: int, rng):
@@ -28,7 +30,7 @@ class InputEmbedding:
         return grads
 
 
-class OutputEmbedding:
+class OutputEmbedding(Layer):
     """The output embedding producing logits. Weights are tied with that
     of the input embedding layer."""
 
@@ -53,7 +55,7 @@ class OutputEmbedding:
         return grads @ self.weights.T
 
 
-class PositionalEmbedding:
+class PositionalEmbedding(Layer):
     """Technically an encoding, just using fourier features."""
     def __init__(self, d_model: int, seq_len: int, dtype=np.float32):
         pos = np.expand_dims(np.arange(0, seq_len), -1)

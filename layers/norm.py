@@ -1,7 +1,9 @@
 import numpy as np
 
+from layers.core import Layer
 
-class LayerNorm:
+
+class LayerNorm(Layer):
     """Layer normalization - normalize the inputs over the last dimension."""
 
     def __init__(self, d_model: int, rng, dtype=np.float32):

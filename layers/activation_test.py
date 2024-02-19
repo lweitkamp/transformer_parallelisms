@@ -29,7 +29,7 @@ def test_softmax(
     softmax_torch = torch.nn.Softmax(dim=-1)
 
     # Forward through both models.
-    softmax_forward = softmax.forward(inputs)
+    softmax_forward = softmax(inputs)
     softmax_forward_torch = softmax_torch(inputs_torch)
 
     # Backward through both models.

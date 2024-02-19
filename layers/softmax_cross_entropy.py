@@ -1,8 +1,10 @@
 import numpy as np
 import layers as npseq
 
+from layers.core import Layer
 
-class SoftmaxCrossEntropy:
+
+class SoftmaxCrossEntropy(Layer):
     """Softmax cross-entropy loss function."""
 
     ctx: dict = {"inputs": None, "labels": None}

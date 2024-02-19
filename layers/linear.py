@@ -1,9 +1,10 @@
 import numpy as np
 
 import string
+from layers.core import Layer
 
 
-class Linear:
+class Linear(Layer):
     """Linear layer mimicking the DenseGeneral from flax - flexible in and out axes."""
 
     def __init__(

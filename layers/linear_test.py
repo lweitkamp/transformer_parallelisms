@@ -24,12 +24,12 @@ def test_attention_linear(
     # d_model to d_head, n_head.
     inputs = rng.random((batch_size, seq_len, d_model))
     linear = Linear(d_model, (d_head, n_heads), rng)
-    assert linear.forward(inputs).shape == (batch_size, seq_len, d_head, n_heads)
+    assert linear(inputs).shape == (batch_size, seq_len, d_head, n_heads)
 
     # d_head, n_head to d_model.
     inputs = rng.random((batch_size, seq_len, d_head, n_heads))
     linear = Linear((d_head, n_heads), d_model, rng)
-    assert linear.forward(inputs).shape == (batch_size, seq_len, d_model)
+    assert linear(inputs).shape == (batch_size, seq_len, d_model)
 
 
 @pytest.mark.parametrize(
@@ -60,7 +60,7 @@ def test_linear(
     linear_torch.bias = nn.Parameter(torch.from_numpy(linear.bias))
 
     # Forward through both models.
-    linear_forward = linear.forward(inputs)
+    linear_forward = linear(inputs)
     linear_forward_torch = linear_torch(inputs_torch)
 
     # Backward through both models.

@@ -1,14 +1,17 @@
 import numpy as np
 
 import layers as npseq
+from layers.core import Block
 
 
-class Attention:
+class Attention(Block):
     """A Multi-headed self-Attention (decoder-only) layer."""
 
     def __init__(
         self, d_model: int, n_heads: int, d_hidden: int, rng, dtype=np.float32
     ):
+        super().__init__()
+
         self.q_proj = npseq.Linear(d_model, (n_heads, d_hidden), rng, dtype)
         self.k_proj = npseq.Linear(d_model, (n_heads, d_hidden), rng, dtype)
         self.v_proj = npseq.Linear(d_model, (n_heads, d_hidden), rng, dtype)
@@ -18,6 +21,9 @@ class Attention:
         self.scale = np.sqrt(d_hidden)
 
         self.ctx: dict = {"attention_weights": None, "q": None, "k": None, "v": None}
+
+        self.layers.extend([self.q_proj, self.k_proj, self.v_proj, self.out_proj])
+
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Forward pass through the self-attention layer."""
@@ -70,9 +76,6 @@ class Attention:
             + self.k_proj.backward(grads_k)
             + self.v_proj.backward(grads_v)
         )
-        # grads = self.in_proj.backward(
-        #     np.concatenate([grads_q, grads_k, grads_v], axis=2)
-        # )
 
         self.ctx["attention_weights"] = None
         self.ctx["mask"] = None

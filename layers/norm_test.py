@@ -30,8 +30,8 @@ def test_layer_norm(
     norm_torch.weight = nn.Parameter(torch.from_numpy(norm.weight.T))
     norm_torch.bias = nn.Parameter(torch.from_numpy(norm.bias))
 
-    outputs = norm.forward(inputs)
-    outputs_torch = norm_torch.forward(inputs_torch)
+    outputs = norm(inputs)
+    outputs_torch = norm_torch(inputs_torch)
 
     norm.backward(np.ones_like(inputs))
     outputs_torch.sum().backward()
@@ -77,8 +77,8 @@ def test_layer_norm_linear(
     norm_torch[0].weight = nn.Parameter(torch.from_numpy(norm[0].weight.T))
     norm_torch[0].bias = nn.Parameter(torch.from_numpy(norm[0].bias))
 
-    outputs = norm[1].forward(norm[0].forward(inputs))
-    outputs_torch = norm_torch.forward(inputs_torch)
+    outputs = norm[1](norm[0](inputs))
+    outputs_torch = norm_torch(inputs_torch)
 
     norm[0].backward(norm[1].backward(np.ones_like(inputs)))
     outputs_torch.sum().backward()
