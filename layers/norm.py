@@ -7,6 +7,8 @@ class LayerNorm(Layer):
     """Layer normalization - normalize the inputs over the last dimension."""
 
     def __init__(self, d_model: int, rng, dtype=np.float32):
+        super().__init__()
+
         self.weight = rng.random((d_model,), dtype=dtype)
         self.bias = np.zeros((d_model,), dtype=dtype)
 
@@ -14,7 +16,8 @@ class LayerNorm(Layer):
         self.eps = 1e-5
 
         self.ctx: dict = {"input_normalized": None, "std": None}
-        self.grads: dict = {"weight": None, "bias": None}
+        self.grads["weight"] = None
+        self.grads["bias"] = None
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Calculate mean and standard deviation of the inputs along the

@@ -7,10 +7,12 @@ class InputEmbedding(Layer):
     """The input embedding lookup-table."""
 
     def __init__(self, d_model: int, vocab_size: int, rng):
-        self.weights = rng.random((d_model, vocab_size))
+        super().__init__()
+
+        self.weight = rng.random((d_model, vocab_size))
 
         self.ctx: dict = {"inputs": None}
-        self.grads: dict = {"weights": None}
+        self.grads["weight"] = None
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Given an embedding table and input tokens, embed the tokens.
@@ -22,37 +24,37 @@ class InputEmbedding(Layer):
             Token embeddings.
         """
         self.ctx["inputs"] = inputs
-        return np.take(self.weights.T, inputs, axis=0)
+        return np.take(self.weight.T, inputs, axis=0)
 
     def backward(self, grads: np.ndarray) -> np.ndarray:
-        """Perform a backward pass, calculating the gradients."""
-        self.grads["weights"] = None
+        """TODO"""
+        self.grads["weight"] = None
         return grads
 
 
 class OutputEmbedding(Layer):
-    """The output embedding producing logits. Weights are tied with that
+    """The output embedding producing logits. weight are tied with that
     of the input embedding layer."""
 
-    def __init__(self, weights: np.ndarray):
-        self.weights = weights
+    def __init__(self, weight: np.ndarray):
+        self.weight = weight
 
         self.ctx: dict = {"inputs": None}
-        self.grads: dict = {"weights": None}
+        self.grads["weight"] = None
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Calculate the logits through a simple matrix product."""
         self.ctx["inputs"] = inputs
-        return inputs @ self.weights
+        return inputs @ self.weight
 
     def backward(self, grads: np.ndarray) -> np.ndarray:
         """Perform a backward pass, calculating the gradients."""
         divisor = np.prod(self.ctx["inputs"].shape[:2])
-        self.grads["weights"] = (
+        self.grads["weight"] = (
             np.einsum("bsd, bsv -> dv", self.ctx["inputs"], grads) / divisor
         )
         self.ctx["inputs"] = None
-        return grads @ self.weights.T
+        return grads @ self.weight.T
 
 
 class PositionalEmbedding(Layer):

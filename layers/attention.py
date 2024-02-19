@@ -24,7 +24,6 @@ class Attention(Block):
 
         self.layers.extend([self.q_proj, self.k_proj, self.v_proj, self.out_proj])
 
-
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Forward pass through the self-attention layer."""
         self.ctx["inputs"] = inputs

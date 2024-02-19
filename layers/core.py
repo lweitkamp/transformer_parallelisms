@@ -2,6 +2,9 @@ import numpy as np
 
 
 class Layer:
+    def __init__(self):
+        self.grads: dict = {}
+
     def expose(self):
         """Returns the layer and the weight.
 

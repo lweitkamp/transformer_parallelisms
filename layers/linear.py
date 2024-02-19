@@ -10,6 +10,8 @@ class Linear(Layer):
     def __init__(
         self, input_dim: tuple | int, output_dim: tuple | int, rng, dtype=np.float32
     ):
+        super().__init__()
+
         input_dim = tuple([input_dim]) if isinstance(input_dim, int) else input_dim
         output_dim = tuple([output_dim]) if isinstance(output_dim, int) else output_dim
 
@@ -17,7 +19,8 @@ class Linear(Layer):
         self.bias = np.zeros(output_dim, dtype=dtype)
 
         self.ctx: dict = {"inputs": None}
-        self.grads: dict = {"weight": None, "bias": None}
+        self.grads["weight"] = None
+        self.grads["bias"] = None
 
         # format the einsums for this layer.
         ascii_options = list(string.ascii_letters)
