@@ -6,6 +6,8 @@ from layers.core import Layer
 
 class ReLU(Layer):
     def __init__(self):
+        super().__init__()
+
         self.ctx: dict = {"inputs": None}
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:

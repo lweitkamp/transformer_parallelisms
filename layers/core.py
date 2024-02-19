@@ -28,6 +28,8 @@ class Block(Layer):
         layers are added to self.list. Blocks cannot be defined recursively."""
         data = []
         for layer in self.layers:
-            data.append(layer.expose())
+            if isinstance(layer, Block):
+                data.extend(layer.expose())
+            else:
+                data.append(layer.expose())
         return data
-    

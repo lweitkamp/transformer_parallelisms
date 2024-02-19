@@ -37,6 +37,8 @@ class OutputEmbedding(Layer):
     of the input embedding layer."""
 
     def __init__(self, weight: np.ndarray):
+        super().__init__()
+
         self.weight = weight
 
         self.ctx: dict = {"inputs": None}
@@ -60,6 +62,8 @@ class OutputEmbedding(Layer):
 class PositionalEmbedding(Layer):
     """Technically an encoding, just using fourier features."""
     def __init__(self, d_model: int, seq_len: int, dtype=np.float32):
+        super().__init__()
+
         pos = np.expand_dims(np.arange(0, seq_len), -1)
         _2i = np.arange(d_model, step=2) / d_model
 
