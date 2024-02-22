@@ -84,10 +84,3 @@ class BPETokenizer:
                 f.write(f"{special} {idx}\n")
             for idx1, idx2 in self.merges:
                 f.write(f"{idx1} {idx2}\n")
-
-
-if __name__ == "__main__":
-    tokenizer = BPETokenizer()
-    tokenizer.train(Path("data") / "shakespeare.txt", vocab_size=256 + 255)
-    tokenizer.add_special("<|endoftext|>")
-    print(tokenizer.vocab)
