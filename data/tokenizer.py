@@ -13,6 +13,7 @@ class BPETokenizer:
         self.vocab = {idx: bytes([idx]) for idx in range(256)}
         self.merges = {}
         self.special_tokens = {}
+        self.reverse_special = {}
 
     def encode(self, text: str) -> list[int]:
         """Encode / tokenize the input text."""
@@ -23,8 +24,7 @@ class BPETokenizer:
             if (left, right) not in self.merges:
                 break
 
-            idx = self.merges[(left, right)]
-            tokens = self._merge(tokens, left, right, idx)
+            tokens = self._merge(tokens, left, right, self.merges[(left, right)])
         return tokens
 
     def decode(self, tokens: list[str]) -> str:
@@ -47,8 +47,7 @@ class BPETokenizer:
         """Add a string token to the vocabulary. Returns the index
         at which it is placed."""
         self.vocab[max(self.vocab.keys()) + 1] = str_token
-        self.special_tokens[str_token] = str_token
-        return max(self.vocab.keys())
+        self.special_tokens[str_token] = max(self.vocab)
 
     def _merge(
         self, tokens: list[int], left: int, right: int, new_id: int
@@ -61,11 +60,34 @@ class BPETokenizer:
         return new_tokens
 
     def load(self, tokenizer_path: Path) -> None:
-        ...
+        self.vocab = {idx: bytes([idx]) for idx in range(256)}
+        self.special_tokens, self.merges = {}, {}
+        with Path(tokenizer_path).open(mode="r", encoding="utf-8") as f:
+            num_special = int(f.readline().strip())
+            for _ in range(num_special):
+                special, special_idx = f.readline().strip().split()
+                self.special_tokens[special] = int(special_idx)
+            for i, line in enumerate(f):
+                idx1, idx2 = map(int, line.split())
+                self.merges[(idx1, idx2)] = 256 + i
+
+        # Build the vocab
+        for (p0, p1), idx in self.merges.items():
+            self.vocab[idx] = self.vocab[p0] + self.vocab[p1]
+        for special, idx in self.special_tokens.items():
+            self.vocab[idx] = special.encode("utf-8")
 
     def save(self, save_path: Path | str) -> None:
         with Path(save_path).open(mode="w", encoding="utf-8") as f:
+            f.write(f"{len(self.special_tokens)}\n")
             for special, idx in self.special_tokens.items():
                 f.write(f"{special} {idx}\n")
             for idx1, idx2 in self.merges:
                 f.write(f"{idx1} {idx2}\n")
+
+
+if __name__ == "__main__":
+    tokenizer = BPETokenizer()
+    tokenizer.train(Path("data") / "shakespeare.txt", vocab_size=256 + 255)
+    tokenizer.add_special("<|endoftext|>")
+    print(tokenizer.vocab)
