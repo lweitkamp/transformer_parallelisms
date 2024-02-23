@@ -9,7 +9,6 @@ class BPETokenizer:
     """Simple Byte-Pair Encoding that transforms text to tokens."""
 
     def __init__(self):
-        """Copy a previous-defined vocab or create a new one."""
         self.vocab = {idx: bytes([idx]) for idx in range(256)}
         self.merges = {}
         self.special_tokens = {}
@@ -84,3 +83,25 @@ class BPETokenizer:
                 f.write(f"{special} {idx}\n")
             for idx1, idx2 in self.merges:
                 f.write(f"{idx1} {idx2}\n")
+
+    @classmethod
+    def from_saved(cls, path):
+        tokenizer = cls()
+        tokenizer.load(path)
+        return tokenizer
+
+
+def train_shakespeare():
+    tokenizer = BPETokenizer()
+    tokenizer.train(Path("data") / "shakespeare.txt", vocab_size=256 + 255)
+    tokenizer.add_special("<|endoftext|>")  # 512 total tokens
+    tokenizer.save(Path("data") / "tokenizer.model")
+
+    txt = "Hello world, will this text be recovered properly?"
+    encoded_text = tokenizer.encode(txt)
+    tokenizer.load(Path("data") / "tokenizer.model")
+    assert tokenizer.decode(encoded_text) == txt
+
+
+if __name__ == "__main__":
+    train_shakespeare()
