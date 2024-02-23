@@ -92,8 +92,10 @@ class BPETokenizer:
 
 
 def train_shakespeare():
+    shakespeare_data = Path("data") / "shakespeare.txt"
+
     tokenizer = BPETokenizer()
-    tokenizer.train(Path("data") / "shakespeare.txt", vocab_size=256 + 255)
+    tokenizer.train(shakespeare_data, vocab_size=256 + 255)
     tokenizer.add_special("<|endoftext|>")  # 512 total tokens
     tokenizer.save(Path("data") / "tokenizer.model")
 
@@ -101,6 +103,12 @@ def train_shakespeare():
     encoded_text = tokenizer.encode(txt)
     tokenizer.load(Path("data") / "tokenizer.model")
     assert tokenizer.decode(encoded_text) == txt
+
+    # Tokenize the entire dataset and store
+    dataset = tokenizer.encode(shakespeare_data.open(mode="r", encoding="utf-8").read())
+    with (Path("data") / "shakespeare.tokens").open(mode="w", encoding="utf-8") as f:
+        for token in dataset:
+            f.write(f"{token} ")
 
 
 if __name__ == "__main__":
