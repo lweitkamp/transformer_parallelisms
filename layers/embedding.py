@@ -27,8 +27,9 @@ class InputEmbedding(Layer):
         return np.take(self.weight.T, inputs, axis=0)
 
     def backward(self, grads: np.ndarray) -> np.ndarray:
-        """TODO"""
-        self.grads["weight"] = None
+        self.grads["weight"] = np.zeros_like(self.weight)
+        np.add.at(self.grads["weight"].T, self.ctx["inputs"], grads)
+        self.ctx["inputs"] = None
         return grads
 
 
