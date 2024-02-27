@@ -9,7 +9,7 @@ class LayerNorm(Layer):
     def __init__(self, d_model: int, rng, dtype=np.float32):
         super().__init__()
 
-        self.weight = rng.random((d_model,), dtype=dtype)
+        self.weight = rng.random(size=(d_model,), dtype=dtype) * 0.02
         self.bias = np.zeros((d_model,), dtype=dtype)
 
         self.d_model = d_model

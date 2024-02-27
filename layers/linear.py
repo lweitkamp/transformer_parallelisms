@@ -15,7 +15,7 @@ class Linear(Layer):
         input_dim = tuple([input_dim]) if isinstance(input_dim, int) else input_dim
         output_dim = tuple([output_dim]) if isinstance(output_dim, int) else output_dim
 
-        self.weight = rng.random(size=input_dim + output_dim, dtype=dtype)
+        self.weight = rng.random(size=input_dim + output_dim, dtype=dtype) * 0.02
         self.bias = np.zeros(output_dim, dtype=dtype)
 
         self.ctx: dict = {"inputs": None}
@@ -44,8 +44,8 @@ class Linear(Layer):
             grads,
         )
 
-        self.grads["weight"] = weight_gradient.sum(axis=(0, 1))
-        self.grads["bias"] = grads.sum(axis=(0, 1))
+        self.grads["weight"] = weight_gradient.mean(axis=(0, 1))
+        self.grads["bias"] = grads.mean(axis=(0, 1))
 
         grads = np.einsum(
             f"...{self.out_chr}, {self.in_chr}{self.out_chr} -> ...{self.in_chr}",
