@@ -4,6 +4,8 @@ https://github.com/karpathy/minbpe."""
 from pathlib import Path
 from collections import Counter
 
+import numpy as np
+
 
 class BPETokenizer:
     """Simple Byte-Pair Encoding that transforms text to tokens."""
@@ -105,10 +107,13 @@ def train_shakespeare():
     assert tokenizer.decode(encoded_text) == txt
 
     # Tokenize the entire dataset and store
-    dataset = tokenizer.encode(shakespeare_data.open(mode="r", encoding="utf-8").read())
-    with (Path("data") / "shakespeare.tokens").open(mode="w", encoding="utf-8") as f:
-        for token in dataset:
-            f.write(f"{token} ")
+
+    data = shakespeare_data.open(mode="r", encoding="utf-8").read()
+    train_data = tokenizer.encode(data[: int(len(data) * 0.9)])
+    val_data = tokenizer.encode(data[int(len(data) * 0.9) :])
+
+    np.array(train_data, dtype=np.uint16).tofile(Path("data") / "train.bin")
+    np.array(val_data, dtype=np.uint16).tofile(Path("data") / "val.bin")
 
 
 if __name__ == "__main__":
