@@ -107,13 +107,12 @@ def train_shakespeare():
     assert tokenizer.decode(encoded_text) == txt
 
     # Tokenize the entire dataset and store
-
     data = shakespeare_data.open(mode="r", encoding="utf-8").read()
+    print(data[:20])
     train_data = tokenizer.encode(data[: int(len(data) * 0.9)])
     val_data = tokenizer.encode(data[int(len(data) * 0.9) :])
-
-    np.array(train_data, dtype=np.uint16).tofile(Path("data") / "train.bin")
-    np.array(val_data, dtype=np.uint16).tofile(Path("data") / "val.bin")
+    np.save(Path("data") / "train", np.array(train_data, dtype=np.uint16))
+    np.save(Path("data") / "val", np.array(val_data, dtype=np.uint16))
 
 
 if __name__ == "__main__":
