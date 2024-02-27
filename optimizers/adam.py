@@ -30,7 +30,7 @@ class Adam:
         self.betas = betas
         self.eps = eps
 
-    def update(self, norm: int):
+    def update(self):
         self.timestep += 1
 
         b1, b2 = self.betas
@@ -43,13 +43,10 @@ class Adam:
             np.add(b1 * momentum, (1 - b1) * grads, out=momentum)
             np.add(b2 * velocity, (1 - b2) * np.power(grads, 2), out=velocity)
 
-            m_hat = momentum / (1 - b1 ** self.timestep)
-            v_hat = velocity / (1 - b2 ** self.timestep)
+            m_hat = momentum / (1 - b1**self.timestep)
+            v_hat = velocity / (1 - b2**self.timestep)
             update = self.learning_rate * m_hat / (np.sqrt(v_hat) + self.eps)
-
-            # TODO: we essentially sum up the grads for batch and seq dim, shouldn't
-            # we avg it at some point?
-            setattr(layer, tensor_name,  weight - update)
+            setattr(layer, tensor_name, weight - update)
 
     def step(self, inputs: np.ndarray, labels: np.ndarray) -> dict:
         batch_size, seq_len, *_ = inputs.shape
@@ -60,7 +57,7 @@ class Adam:
 
         # Backward pass and update
         self.model.backward(self.loss_fn.backward())
-        self.update(batch_size * seq_len)
+        self.update()
 
         return {
             "loss": loss,
