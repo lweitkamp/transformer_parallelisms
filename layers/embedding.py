@@ -62,6 +62,7 @@ class OutputEmbedding(Layer):
 
 class PositionalEmbedding(Layer):
     """Technically an encoding, just using fourier features."""
+
     def __init__(self, d_model: int, seq_len: int, dtype=np.float32):
         super().__init__()
 
@@ -69,11 +70,11 @@ class PositionalEmbedding(Layer):
         _2i = np.arange(d_model, step=2) / d_model
 
         self.encoding = np.zeros((seq_len, d_model), dtype=dtype)
-        self.encoding[:, 0::2] = np.sin(pos / (10000 ** _2i))
-        self.encoding[:, 1::2] = np.cos(pos / (10000 ** _2i))
+        self.encoding[:, 0::2] = np.sin(pos / (10000**_2i))
+        self.encoding[:, 1::2] = np.cos(pos / (10000**_2i))
 
     def forward(self, inputs: np.ndarray):
-        _, seq_len, * _ = inputs.shape
+        _, seq_len, *_ = inputs.shape
         return self.encoding[:seq_len, :] + inputs
 
     def backward(self, grads: np.ndarray) -> np.ndarray:
