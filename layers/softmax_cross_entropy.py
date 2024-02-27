@@ -1,11 +1,12 @@
 import numpy as np
-import layers as npseq
+import layers
 
 from layers.core import Layer
 
 
 class SoftmaxCrossEntropy(Layer):
     """Softmax cross-entropy loss function."""
+
     def __init__(self):
         self.ctx: dict = {"inputs": None, "labels": None}
 
@@ -45,7 +46,7 @@ class SoftmaxCrossEntropy(Layer):
         logits = logits.reshape(batch_size * seq_len, vocab_size)
         labels = labels.reshape(batch_size * seq_len)
 
-        probabilities = npseq.softmax(logits, axis=-1)
+        probabilities = layers.softmax(logits, axis=-1)
         probabilities[np.arange(batch_size * seq_len), labels] -= 1
 
         # Clear cache.

@@ -1,6 +1,6 @@
 import numpy as np
 
-import layers as npseq
+import layers
 from layers.core import Block
 
 
@@ -12,11 +12,11 @@ class Attention(Block):
     ):
         super().__init__()
 
-        self.q_proj = npseq.Linear(d_model, (n_heads, d_hidden), rng, dtype)
-        self.k_proj = npseq.Linear(d_model, (n_heads, d_hidden), rng, dtype)
-        self.v_proj = npseq.Linear(d_model, (n_heads, d_hidden), rng, dtype)
-        self.out_proj = npseq.Linear((n_heads, d_hidden), d_model, rng, dtype)
-        self.softmax = npseq.Softmax(axis=-1)
+        self.q_proj = layers.Linear(d_model, (n_heads, d_hidden), rng, dtype)
+        self.k_proj = layers.Linear(d_model, (n_heads, d_hidden), rng, dtype)
+        self.v_proj = layers.Linear(d_model, (n_heads, d_hidden), rng, dtype)
+        self.out_proj = layers.Linear((n_heads, d_hidden), d_model, rng, dtype)
+        self.softmax = layers.Softmax(axis=-1)
 
         self.scale = np.sqrt(d_hidden)
 
@@ -37,7 +37,7 @@ class Attention(Block):
         attention_weights = np.einsum("bshm, bzhm -> bhsz", q, k) / self.scale
         attention_weights = np.where(mask, attention_weights, float("-inf"))
         attention_weights = self.softmax.forward(attention_weights)
-        
+
         attention = np.einsum("bhsz, bzhm -> bshm", attention_weights, v)
         out = self.out_proj.forward(attention)
 
