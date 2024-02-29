@@ -1,6 +1,6 @@
 import numpy as np
 
-from nn.core import Layer
+from numpitron.nn.core import Layer
 
 
 class LayerNorm(Layer):

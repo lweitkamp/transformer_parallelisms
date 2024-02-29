@@ -1,7 +1,7 @@
 import numpy as np
 
-import nn
-from nn.core import Block
+from numpitron.nn.core import Block
+from numpitron import nn
 
 
 class MLP(Block):

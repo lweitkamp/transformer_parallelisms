@@ -7,4 +7,3 @@ from numpitron.nn.softmax_cross_entropy import SoftmaxCrossEntropy
 from numpitron.nn.norm import LayerNorm
 from numpitron.nn.activation import ReLU, Softmax, softmax
 from numpitron.nn.transformer import TransformerBlock
-from numpitron.nn.core import Block, Layer

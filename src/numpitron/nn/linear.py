@@ -1,7 +1,7 @@
 import numpy as np
 
 import string
-from nn.core import Layer
+from numpitron.nn.core import Layer
 
 
 class Linear(Layer):

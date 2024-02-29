@@ -1,7 +1,7 @@
 import numpy as np
 
-import parallel as npdist
-from nn import InputEmbedding
+from numpitron.nn import InputEmbedding
+from numpitron.parallel import distributed as dist
 
 
 class VocabParallelInputEmbedding(InputEmbedding):
@@ -10,7 +10,7 @@ class VocabParallelInputEmbedding(InputEmbedding):
     def __init__(self, d_model: int, vocab_size: int, rng):
         super().__init__(
             d_model=d_model,
-            vocab_size=vocab_size // npdist.world_size(),
+            vocab_size=vocab_size // dist.world_size(),
             rng=rng,
         )
 
@@ -28,7 +28,7 @@ class VocabParallelInputEmbedding(InputEmbedding):
             (Masked) token embeddings.
         """
         # Figure out token valid range for this specific embedding chunk.
-        chunk_start = npdist.rank() * self.weight.shape[1]
+        chunk_start = dist.rank() * self.weight.shape[1]
         chunk_end = chunk_start + self.weight.shape[1]
         mask = np.logical_or(inputs < chunk_start, inputs >= chunk_end)
 

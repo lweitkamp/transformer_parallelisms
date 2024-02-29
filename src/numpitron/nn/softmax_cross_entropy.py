@@ -1,7 +1,6 @@
 import numpy as np
-import nn
 
-from nn.core import Layer
+from numpitron.nn.core import Layer
 
 
 class SoftmaxCrossEntropy(Layer):

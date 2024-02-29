@@ -1,9 +1,10 @@
 import numpy as np
 
 import numpitron.nn as nn
+from numpitron.nn.core import Block
 
 
-class Attention(nn.Block):
+class Attention(Block):
     """A Multi-headed self-Attention (decoder-only) layer."""
 
     def __init__(

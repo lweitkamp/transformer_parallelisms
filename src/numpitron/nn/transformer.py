@@ -1,7 +1,7 @@
-import nn
 import numpy as np
 
-from nn.core import Block
+from numpitron.nn.core import Block
+from numpitron import nn
 
 
 class TransformerBlock(Block):
@@ -10,9 +10,7 @@ class TransformerBlock(Block):
     def __init__(self, d_model, n_heads, rng, dtype):
         super().__init__()
 
-        self.attention = nn.Attention(
-            d_model, n_heads, d_model // n_heads, rng, dtype
-        )
+        self.attention = nn.Attention(d_model, n_heads, d_model // n_heads, rng, dtype)
         self.norm1 = nn.LayerNorm(d_model, rng)
         self.mlp = nn.MLP(d_model, d_model * 4, rng, dtype)
         self.norm2 = nn.LayerNorm(d_model, rng)
