@@ -1,7 +1,7 @@
 import numpy as np
 
-import distributed as npdist
-from layers import InputEmbedding
+import parallel as npdist
+from nn import InputEmbedding
 
 
 class VocabParallelInputEmbedding(InputEmbedding):

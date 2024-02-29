@@ -1,6 +1,6 @@
 import numpy as np
 
-from layers.core import Layer
+from nn.core import Layer
 
 
 class InputEmbedding(Layer):

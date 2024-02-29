@@ -1,0 +1,6 @@
+model:
+  optimizer:
+    learning_rate: 0.1
+    beta0: 0.9
+    beta1: 0.95
+rng: 42

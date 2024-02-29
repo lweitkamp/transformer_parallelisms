@@ -23,17 +23,7 @@ class DataLoader:
         self.tokenizer = tokenizer
 
         # Convert to numpy integers.
-        self.data = np.asarray(
-            [
-                int(x)
-                for x in Path(dataset_path)
-                .open(mode="r", encoding="utf-8")
-                .read()
-                .strip()
-                .split(" ")
-            ],
-            dtype=int,
-        )
+        self.data = np.load(dataset_path)
         self.rng = rng
 
         # Calculate how quickly we go through one epoch.

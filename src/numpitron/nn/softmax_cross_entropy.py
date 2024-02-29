@@ -1,7 +1,7 @@
 import numpy as np
-import layers
+import nn
 
-from layers.core import Layer
+from nn.core import Layer
 
 
 class SoftmaxCrossEntropy(Layer):
@@ -46,7 +46,7 @@ class SoftmaxCrossEntropy(Layer):
         logits = logits.reshape(batch_size * seq_len, vocab_size)
         labels = labels.reshape(batch_size * seq_len)
 
-        probabilities = layers.softmax(logits, axis=-1)
+        probabilities = nn.softmax(logits, axis=-1)
         probabilities[np.arange(batch_size * seq_len), labels] -= 1
 
         # Clear cache.

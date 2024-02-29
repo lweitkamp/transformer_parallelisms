@@ -1,7 +1,6 @@
 import numpy as np
 from mpi4py import MPI
 
-import distributed as npdist
 
 MPI_COMM = MPI.COMM_WORLD
 
@@ -49,7 +48,7 @@ def reduce(
         dst (int): Rank on which we gather the reduction.
         op (MPI.Op): Operation to reduce the tensor.
     """
-    if npdist.rank() == dst:
+    if rank() == dst:
         MPI_COMM.Reduce(MPI.IN_PLACE, tensor, op=op, root=dst)
     else:
         MPI_COMM.Reduce(tensor, None, op=op, root=dst)

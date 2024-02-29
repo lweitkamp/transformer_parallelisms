@@ -1,18 +1,18 @@
 import numpy as np
 
-import distributed as npdist
-from layers import Attention
+from numpitron import nn
+from numpitron.parallel import distributed as dist
 
 
-class HeadParallelAttention(Attention):
+class HeadParallelAttention(nn.Attention):
     """A Multi-headed self-Attention (decoder-only) layer. We split the
     weights over multiple devices along the head dimension."""
 
     def __init__(self, d_model: int, n_heads: int, d_hidden: int, rng):
-        npdist.assert_divisible(n_heads)
+        dist.assert_divisible(n_heads)
         super().__init__(
             d_model=d_model,
-            n_heads=n_heads // npdist.world_size(),
+            n_heads=n_heads // dist.world_size(),
             d_hidden=d_hidden,
             rng=rng,
         )
@@ -23,7 +23,7 @@ class HeadParallelAttention(Attention):
         x = super().forward(inputs)
 
         # g(x) -->
-        npdist.all_reduce(x)
+        dist.all_reduce(x)
         return x
 
     def backward(self, grads: np.ndarray):
@@ -32,5 +32,5 @@ class HeadParallelAttention(Attention):
         grads = super().backward(grads)
 
         # f(x) -->
-        npdist.all_reduce(np.ascontiguousarray(grads))
+        dist.all_reduce(np.ascontiguousarray(grads))
         return grads

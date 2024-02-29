@@ -49,8 +49,6 @@ class Adam:
             setattr(layer, tensor_name, weight - update)
 
     def step(self, inputs: np.ndarray, labels: np.ndarray) -> dict:
-        batch_size, seq_len, *_ = inputs.shape
-
         # Forward pass & calculate the loss
         logits = self.model.forward(inputs)
         loss = self.loss_fn.forward(logits, labels)

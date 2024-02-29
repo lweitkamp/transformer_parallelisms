@@ -1,10 +1,9 @@
 import numpy as np
 
-import layers
-from layers.core import Block
+import numpitron.nn as nn
 
 
-class Attention(Block):
+class Attention(nn.Block):
     """A Multi-headed self-Attention (decoder-only) layer."""
 
     def __init__(
@@ -12,11 +11,11 @@ class Attention(Block):
     ):
         super().__init__()
 
-        self.q_proj = layers.Linear(d_model, (n_heads, d_hidden), rng, dtype)
-        self.k_proj = layers.Linear(d_model, (n_heads, d_hidden), rng, dtype)
-        self.v_proj = layers.Linear(d_model, (n_heads, d_hidden), rng, dtype)
-        self.out_proj = layers.Linear((n_heads, d_hidden), d_model, rng, dtype)
-        self.softmax = layers.Softmax(axis=-1)
+        self.q_proj = nn.Linear(d_model, (n_heads, d_hidden), rng, dtype)
+        self.k_proj = nn.Linear(d_model, (n_heads, d_hidden), rng, dtype)
+        self.v_proj = nn.Linear(d_model, (n_heads, d_hidden), rng, dtype)
+        self.out_proj = nn.Linear((n_heads, d_hidden), d_model, rng, dtype)
+        self.softmax = nn.Softmax(axis=-1)
 
         self.scale = np.sqrt(d_hidden)
 

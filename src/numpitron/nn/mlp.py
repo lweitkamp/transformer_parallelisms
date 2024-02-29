@@ -1,7 +1,7 @@
 import numpy as np
 
-import layers
-from layers.core import Block
+import nn
+from nn.core import Block
 
 
 class MLP(Block):
@@ -12,9 +12,9 @@ class MLP(Block):
 
         self.layers.extend(
             [
-                layers.Linear(d_model, d_hidden, rng=rng, dtype=dtype),
-                layers.ReLU(),
-                layers.Linear(d_hidden, d_model, rng=rng, dtype=dtype),
+                nn.Linear(d_model, d_hidden, rng=rng, dtype=dtype),
+                nn.ReLU(),
+                nn.Linear(d_hidden, d_model, rng=rng, dtype=dtype),
             ]
         )
 

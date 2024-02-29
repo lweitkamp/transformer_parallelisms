@@ -1,6 +1,6 @@
 import numpy as np
 
-import distributed as npdist
+from numpitron.parallel import distributed as dist
 
 
 class ParallelSoftmaxCrossEntropy:
@@ -33,7 +33,7 @@ class ParallelSoftmaxCrossEntropy:
         labels = labels.reshape(batch_size * seq_len)
 
         # Figure out token valid range for this specific embedding chunk.
-        chunk_start = npdist.rank() * vocab_chunk_shape
+        chunk_start = dist.rank() * vocab_chunk_shape
         chunk_end = chunk_start + vocab_chunk_shape
         mask = np.logical_or(labels < chunk_start, labels >= chunk_end)
 
@@ -44,13 +44,13 @@ class ParallelSoftmaxCrossEntropy:
         # Gather logits, mask them and communicate the (B, S) values.
         logits = inputs[np.arange(batch_size * seq_len), labels]
         logits[mask] = 0
-        npdist.all_reduce(logits)
+        dist.all_reduce(logits)
 
         # Calculate log-sum-exp for the CE loss. Here we first calculate
         # sum-exp and communicate the (B, S) values.
         exp_inputs = np.exp(inputs)
         sum_exp = np.sum(exp_inputs, axis=-1)
-        npdist.all_reduce(sum_exp)
+        dist.all_reduce(sum_exp)
 
         cross_entropy = -logits + np.log(sum_exp)
         cross_entropy = cross_entropy.reshape((batch_size, seq_len))

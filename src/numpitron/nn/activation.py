@@ -1,10 +1,9 @@
 import numpy as np
 
+import numpitron.nn as nn
 
-from layers.core import Layer
 
-
-class ReLU(Layer):
+class ReLU(nn.core.Layer):
     def __init__(self):
         super().__init__()
 
@@ -27,7 +26,7 @@ def softmax(inputs: np.ndarray, axis: int = -1) -> np.ndarray:
     return x_ / x_.sum(axis=axis, keepdims=True)
 
 
-class Softmax(Layer):
+class Softmax(nn.core.Layer):
     def __init__(self, axis: int = -1):
         assert axis == -1, "no support for any other axis right now."
         self.axis = axis

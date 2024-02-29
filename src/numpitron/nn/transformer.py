@@ -1,7 +1,7 @@
-import layers
+import nn
 import numpy as np
 
-from layers.core import Block
+from nn.core import Block
 
 
 class TransformerBlock(Block):
@@ -10,12 +10,12 @@ class TransformerBlock(Block):
     def __init__(self, d_model, n_heads, rng, dtype):
         super().__init__()
 
-        self.attention = layers.Attention(
+        self.attention = nn.Attention(
             d_model, n_heads, d_model // n_heads, rng, dtype
         )
-        self.norm1 = layers.LayerNorm(d_model, rng)
-        self.mlp = layers.MLP(d_model, d_model * 4, rng, dtype)
-        self.norm2 = layers.LayerNorm(d_model, rng)
+        self.norm1 = nn.LayerNorm(d_model, rng)
+        self.mlp = nn.MLP(d_model, d_model * 4, rng, dtype)
+        self.norm2 = nn.LayerNorm(d_model, rng)
 
         self.layers.extend([self.attention, self.norm1, self.mlp, self.norm2])
 
