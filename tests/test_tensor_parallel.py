@@ -143,7 +143,7 @@ def test_row_linear(batch_size: int, seq_len: int, d_model: int, seed: int):
 
     # Create a normal- and a row parallel linear-layer.
     linear = nn.Linear(d_model, d_model, global_rng)
-    row_linear = dist.RowParallelLinear(d_model, d_model, local_rng)
+    row_linear = tensor_parallel.RowParallelLinear(d_model, d_model, local_rng)
 
     # Scatter the linear layer's weights
     dist.scatter(linear.weight, row_linear.weight, axis=0)
@@ -168,7 +168,7 @@ def test_column_linear(batch_size: int, seq_len: int, d_model: int, seed: int):
 
     # Create a normal- and a row parallel linear-layer.
     linear = nn.Linear(d_model, d_model, global_rng)
-    column_linear = dist.ColumnParallelLinear(d_model, d_model, local_rng)
+    column_linear = tensor_parallel.ColumnParallelLinear(d_model, d_model, local_rng)
 
     # Scatter the linear layer's weights.
     dist.scatter(linear.weight, column_linear.weight, axis=1)

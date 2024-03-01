@@ -44,8 +44,8 @@ class Linear(Layer):
             grads,
         )
 
-        self.grads["weight"] = weight_gradient.mean(axis=(0, 1))
-        self.grads["bias"] = grads.mean(axis=(0, 1))
+        self.grads["weight"] = weight_gradient.sum(axis=(0, 1))
+        self.grads["bias"] = grads.sum(axis=(0, 1))
 
         grads = np.einsum(
             f"...{self.out_chr}, {self.in_chr}{self.out_chr} -> ...{self.in_chr}",

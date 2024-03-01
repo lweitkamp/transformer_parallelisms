@@ -196,7 +196,7 @@ def test_attention_linear(
 
     # d_model to d_head, n_head.
     inputs = rng.random((batch_size, seq_len, d_model))
-    linear = nn.Linear(d_model, (d_head, n_heads), rng)
+    linear = Linear(d_model, (d_head, n_heads), rng)
     assert linear(inputs).shape == (batch_size, seq_len, d_head, n_heads)
 
     # d_head, n_head to d_model.
