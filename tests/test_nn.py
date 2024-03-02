@@ -277,7 +277,6 @@ def test_linear(
     )
 
 
-
 @pytest.mark.parametrize(
     "batch_size,seq_len,d_model",
     [(2, 3, 8), (1, 1, 8), (2, 2, 32)],
@@ -391,6 +390,7 @@ def test_layer_norm(
     )
 
     np.testing.assert_allclose(bw, inputs_torch.grad.detach().numpy(), atol=1e-5)
+
 
 @pytest.mark.parametrize(
     "batch_size,seq_len,d_model",

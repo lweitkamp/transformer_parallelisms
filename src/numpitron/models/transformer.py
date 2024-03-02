@@ -1,8 +1,8 @@
 import numpy as np
 
-import layers
 
-from layers.core import Block
+from numpitron import nn
+from numpitron.nn.core import Block
 
 
 class Transformer(Block):
@@ -10,7 +10,7 @@ class Transformer(Block):
         self,
         seq_len: int,
         vocab_size: int,
-        n_layers: int,
+        n_nn: int,
         d_model: int,
         n_heads: int,
         rng,
@@ -19,22 +19,22 @@ class Transformer(Block):
         """..."""
         super().__init__()
 
-        self.layers.extend([
-            layers.InputEmbedding(d_model, vocab_size, rng),
-            layers.PositionalEmbedding(d_model, seq_len),
+        self.nn.extend([
+            nn.InputEmbedding(d_model, vocab_size, rng),
+            nn.PositionalEmbedding(d_model, seq_len),
         ])
-        self.layers.extend([
-            layers.TransformerBlock(d_model, n_heads, rng, dtype)
-            for _ in range(n_layers)
+        self.nn.extend([
+            nn.TransformerBlock(d_model, n_heads, rng, dtype)
+            for _ in range(n_nn)
         ])
-        self.layers.append(layers.OutputEmbedding(self.layers[0].weight))
+        self.nn.append(nn.OutputEmbedding(self.nn[0].weight))
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
-        for layer in self.layers:
+        for layer in self.nn:
             inputs = layer(inputs)
         return inputs
 
     def backward(self, grads: np.ndarray) -> np.ndarray:
-        for layer in self.layers[::-1]:
+        for layer in self.nn[::-1]:
             grads = layer.backward(grads)
         return grads
