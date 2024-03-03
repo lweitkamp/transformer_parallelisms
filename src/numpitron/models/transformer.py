@@ -10,7 +10,7 @@ class Transformer(Block):
         self,
         seq_len: int,
         vocab_size: int,
-        n_nn: int,
+        n_layers: int,
         d_model: int,
         n_heads: int,
         rng,
@@ -19,22 +19,22 @@ class Transformer(Block):
         """..."""
         super().__init__()
 
-        self.nn.extend([
+        self.layers.extend([
             nn.InputEmbedding(d_model, vocab_size, rng),
             nn.PositionalEmbedding(d_model, seq_len),
         ])
-        self.nn.extend([
+        self.layers.extend([
             nn.TransformerBlock(d_model, n_heads, rng, dtype)
-            for _ in range(n_nn)
+            for _ in range(n_layers)
         ])
-        self.nn.append(nn.OutputEmbedding(self.nn[0].weight))
+        self.layers.append(nn.OutputEmbedding(self.layers[0].weight))
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
-        for layer in self.nn:
+        for layer in self.layers:
             inputs = layer(inputs)
         return inputs
 
     def backward(self, grads: np.ndarray) -> np.ndarray:
-        for layer in self.nn[::-1]:
+        for layer in self.layers[::-1]:
             grads = layer.backward(grads)
         return grads
