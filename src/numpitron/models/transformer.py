@@ -19,14 +19,18 @@ class Transformer(Block):
         """..."""
         super().__init__()
 
-        self.layers.extend([
-            nn.InputEmbedding(d_model, vocab_size, rng),
-            nn.PositionalEmbedding(d_model, seq_len),
-        ])
-        self.layers.extend([
-            nn.TransformerBlock(d_model, n_heads, rng, dtype)
-            for _ in range(n_layers)
-        ])
+        self.layers.extend(
+            [
+                nn.InputEmbedding(d_model, vocab_size, rng),
+                nn.PositionalEmbedding(d_model, seq_len),
+            ]
+        )
+        self.layers.extend(
+            [
+                nn.TransformerBlock(d_model, n_heads, rng, dtype)
+                for _ in range(n_layers)
+            ]
+        )
         self.layers.append(nn.OutputEmbedding(self.layers[0].weight))
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:

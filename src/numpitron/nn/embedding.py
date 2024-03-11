@@ -1,18 +1,21 @@
 import numpy as np
 
-from numpitron.nn.core import Layer
+from numpitron.nn.core import Layer, Parameter
 
 
 class InputEmbedding(Layer):
     """The input embedding lookup-table."""
 
-    def __init__(self, d_model: int, vocab_size: int, rng):
+    def __init__(
+        self,
+        d_model: int,
+        vocab_size: int,
+        rng,
+        dtype=np.float32,
+    ):
         super().__init__()
-
-        self.weight = rng.random((d_model, vocab_size))
-
+        self.add_parameter("weight", (d_model, vocab_size), dtype, rng=rng)
         self.ctx: dict = {"inputs": None}
-        self.grads["weight"] = None
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Given an embedding table and input tokens, embed the tokens.
@@ -24,11 +27,11 @@ class InputEmbedding(Layer):
             Token embeddings.
         """
         self.ctx["inputs"] = inputs
-        return np.take(self.weight.T, inputs, axis=0)
+        return np.take(self.weight.data.T, inputs, axis=0)
 
     def backward(self, grads: np.ndarray) -> np.ndarray:
-        self.grads["weight"] = np.zeros_like(self.weight)
-        np.add.at(self.grads["weight"].T, self.ctx["inputs"], grads)
+        self.weight.gradient = np.zeros_like(self.weight.data)
+        np.add.at(self.weight.gradient.T, self.ctx["inputs"], grads)
         self.ctx["inputs"] = None
         return grads
 
@@ -37,33 +40,33 @@ class OutputEmbedding(Layer):
     """The output embedding producing logits. weight are tied with that
     of the input embedding layer."""
 
-    def __init__(self, weight: np.ndarray):
+    def __init__(self, weight: Parameter):
         super().__init__()
-
-        self.weight = weight
+        self.weight: Parameter = weight
 
         self.ctx: dict = {"inputs": None}
-        self.grads["weight"] = None
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Calculate the logits through a simple matrix product."""
         self.ctx["inputs"] = inputs
-        return inputs @ self.weight
+        return inputs @ self.weight.data
 
     def backward(self, grads: np.ndarray) -> np.ndarray:
         """Perform a backward pass, calculating the gradients."""
-        divisor = np.prod(self.ctx["inputs"].shape[:2])
-        self.grads["weight"] = (
-            np.einsum("bsd, bsv -> dv", self.ctx["inputs"], grads) / divisor
-        )
+        self.weight.gradient += np.einsum("bsd, bsv -> dv", self.ctx["inputs"], grads)
         self.ctx["inputs"] = None
-        return grads @ self.weight.T
+        return grads @ self.weight.data.T
 
 
 class PositionalEmbedding(Layer):
     """Technically an encoding, just using fourier features."""
 
-    def __init__(self, d_model: int, seq_len: int, dtype=np.float32):
+    def __init__(
+        self,
+        d_model: int,
+        seq_len: int,
+        dtype=np.float32,
+    ):
         super().__init__()
 
         pos = np.expand_dims(np.arange(0, seq_len), -1)

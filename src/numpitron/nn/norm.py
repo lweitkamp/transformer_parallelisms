@@ -8,16 +8,13 @@ class LayerNorm(Layer):
 
     def __init__(self, d_model: int, rng, dtype=np.float32):
         super().__init__()
-
-        self.weight = rng.random(size=(d_model,), dtype=dtype) * 0.02
-        self.bias = np.zeros((d_model,), dtype=dtype)
+        self.add_parameter("weight", (d_model,), dtype, rng=rng)
+        self.add_parameter("bias", (d_model,), dtype, dtype, init_fn=np.zeros)
 
         self.d_model = d_model
         self.eps = 1e-5
 
         self.ctx: dict = {"input_normalized": None, "std": None}
-        self.grads["weight"] = None
-        self.grads["bias"] = None
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Calculate mean and standard deviation of the inputs along the
@@ -31,7 +28,7 @@ class LayerNorm(Layer):
         self.ctx["mean"] = mean
         self.ctx["var"] = var
 
-        return self.weight * normed + self.bias
+        return self.weight.data * normed + self.bias.data
 
     def backward(self, grads: np.ndarray) -> np.ndarray:
         """The most straightforward reference is surpisingly from the Triton tutorial
@@ -42,10 +39,10 @@ class LayerNorm(Layer):
         var = self.ctx["var"]
         inputs_normed = (inputs - mean) / np.sqrt(var + self.eps)
 
-        self.grads["bias"] = grads.sum(axis=(0, 1))
-        self.grads["weight"] = np.sum(grads * inputs_normed, axis=(0, 1))
+        self.weight.gradient += np.sum(grads * inputs_normed, axis=(0, 1))
+        self.bias.gradient += grads.sum(axis=(0, 1))
 
-        wdy = self.weight * grads
+        wdy = self.weight.data * grads
         c1 = np.sum(inputs_normed * wdy, axis=-1) / self.d_model
         c2 = wdy.sum(axis=-1) / self.d_model
         grads = (wdy - c1[..., None] * inputs_normed - c2[..., None]) / inputs.std(
