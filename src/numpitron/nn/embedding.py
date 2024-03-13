@@ -17,6 +17,8 @@ class InputEmbedding(Layer):
         self.add_parameter("weight", (d_model, vocab_size), dtype, rng=rng)
         self.ctx: dict = {"inputs": None}
 
+        self.weight.data *= 50  # yeah
+
     def forward(self, inputs: np.ndarray) -> np.ndarray:
         """Given an embedding table and input tokens, embed the tokens.
 
