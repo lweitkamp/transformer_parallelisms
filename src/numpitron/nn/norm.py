@@ -39,8 +39,8 @@ class LayerNorm(Layer):
         var = self.ctx["var"]
         inputs_normed = (inputs - mean) / np.sqrt(var + self.eps)
 
-        self.weight.gradient += np.sum(grads * inputs_normed, axis=(0, 1))
-        self.bias.gradient += grads.sum(axis=(0, 1))
+        self.weight.gradient = np.sum(grads * inputs_normed, axis=(0, 1))
+        self.bias.gradient = grads.sum(axis=(0, 1))
 
         wdy = self.weight.data * grads
         c1 = np.sum(inputs_normed * wdy, axis=-1) / self.d_model

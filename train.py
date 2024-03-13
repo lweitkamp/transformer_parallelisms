@@ -39,8 +39,6 @@ def train(config: Config):
             loss = out["loss"].mean()
             print(f"{epoch} : {step}/{train_dataloader.batches_per_epoch} - {loss:.3f}")
 
-    print("....")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -56,12 +56,12 @@ class Adam:
             gradient = state.parameter.gradient
 
             state.momentum = b1 * state.momentum + (1 - b1) * gradient
-            state.velocity = b2 * state.velocity + (1 - b2) * gradient**2
+            state.velocity = b2 * state.velocity + (1 - b2) * np.power(gradient, 2)
 
             momentum = state.momentum / (1 - b1**self.timestep)
             velocity = state.velocity / (1 - b2**self.timestep)
             update = self.learning_rate * momentum / (np.sqrt(velocity) + self.eps)
-            state.parameter.data -= update
+            state.parameter.data = state.parameter.data - update
 
         _update(self.state)
 

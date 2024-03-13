@@ -30,7 +30,6 @@ class InputEmbedding(Layer):
         return np.take(self.weight.data.T, inputs, axis=0)
 
     def backward(self, grads: np.ndarray) -> np.ndarray:
-        self.weight.gradient = np.zeros_like(self.weight.data)
         np.add.at(self.weight.gradient.T, self.ctx["inputs"], grads)
         self.ctx["inputs"] = None
         return grads
@@ -53,7 +52,7 @@ class OutputEmbedding(Layer):
 
     def backward(self, grads: np.ndarray) -> np.ndarray:
         """Perform a backward pass, calculating the gradients."""
-        self.weight.gradient += np.einsum("bsd, bsv -> dv", self.ctx["inputs"], grads)
+        self.weight.gradient = np.einsum("bsd, bsv -> dv", self.ctx["inputs"], grads)
         self.ctx["inputs"] = None
         return grads @ self.weight.data.T
 
