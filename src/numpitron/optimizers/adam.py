@@ -85,6 +85,7 @@ class Adam:
     def save(self, path: Path):
         save_state = {}
 
+        save_state["timestep"] = self.timestep
         save_state["embedding"] = {
             "velocity": self.state[0][0].velocity,
             "momentum": self.state[0][0].momentum,
@@ -186,6 +187,7 @@ class Adam:
     def load(self, path: Path):
         save_state = np.load(path, allow_pickle=True)[()]
 
+        self.timestep = save_state["timestep"]
         self.state[0][0].velocity = save_state["embedding"]["velocity"]
         self.state[0][0].momentum = save_state["embedding"]["momentum"]
 
