@@ -33,11 +33,17 @@ def train(config: Config):
         betas=config.betas,
     )
 
+    min_loss = float('inf')
+
     for epoch in range(config.num_epochs):
         for step, (input_data, labels) in enumerate(train_dataloader.iter_epoch()):
             out = optimizer.step(input_data, labels)
             loss = out["loss"].mean()
             print(f"{epoch} : {step}/{train_dataloader.batches_per_epoch} - {loss:.3f}")
+
+            if loss < min_loss:
+                min_loss = loss
+                transformer.save("")
 
 
 if __name__ == "__main__":
