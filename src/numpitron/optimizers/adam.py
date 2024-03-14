@@ -1,3 +1,4 @@
+from pathlib import Path
 import numpy as np
 from dataclasses import dataclass
 
@@ -80,3 +81,153 @@ class Adam:
         return {
             "loss": loss,
         }
+
+    def save(self, path: Path):
+        save_state = {}
+
+        save_state["embedding"] = {
+            "velocity": self.state[0][0].velocity,
+            "momentum": self.state[0][0].momentum,
+        }
+
+        for i in range(2, len(self.state) - 1):
+            save_state[f"layer_{i}"] = {
+                "attention": {
+                    "q": {
+                        0: {
+                            "velocity": self.state[i][0][0][0].velocity,
+                            "momentum": self.state[i][0][0][0].momentum,
+                        },
+                        1: {
+                            "velocity": self.state[i][0][0][1].velocity,
+                            "momentum": self.state[i][0][0][1].momentum,
+                        },
+                    },
+                    "k": {
+                        0: {
+                            "velocity": self.state[i][0][1][0].velocity,
+                            "momentum": self.state[i][0][1][0].momentum,
+                        },
+                        1: {
+                            "velocity": self.state[i][0][1][1].velocity,
+                            "momentum": self.state[i][0][1][1].momentum,
+                        },
+                    },
+                    "v": {
+                        0: {
+                            "velocity": self.state[i][0][2][0].velocity,
+                            "momentum": self.state[i][0][2][0].momentum,
+                        },
+                        1: {
+                            "velocity": self.state[i][0][2][1].velocity,
+                            "momentum": self.state[i][0][2][1].momentum,
+                        },
+                    },
+                    "o": {
+                        0: {
+                            "velocity": self.state[i][0][3][0].velocity,
+                            "momentum": self.state[i][0][3][0].momentum,
+                        },
+                        1: {
+                            "velocity": self.state[i][0][3][1].velocity,
+                            "momentum": self.state[i][0][3][1].momentum,
+                        },
+                    },
+                },
+
+                "norm1": {
+                    0: {
+                        "velocity": self.state[i][1][0].velocity,
+                        "momentum": self.state[i][1][0].momentum,
+                    },
+                    1: {
+                        "velocity": self.state[i][1][1].velocity,
+                        "momentum": self.state[i][1][1].momentum,
+                    },
+                },
+
+                "mlp": {
+                    "linear1": {
+                        0: {
+                            "velocity": self.state[i][2][0][0].velocity,
+                            "momentum": self.state[i][2][0][0].momentum,
+                        },
+                        1: {
+                            "velocity": self.state[i][2][0][1].velocity,
+                            "momentum": self.state[i][2][0][1].momentum,
+                        },
+                    },
+                    "linear2": {
+                        0: {
+                            "velocity": self.state[i][2][2][0].velocity,
+                            "momentum": self.state[i][2][2][0].momentum,
+                        },
+                        1: {
+                            "velocity": self.state[i][2][2][1].velocity,
+                            "momentum": self.state[i][2][2][1].momentum,
+                        },
+                    },
+                },
+
+                "norm2": {
+                    0: {
+                        "velocity": self.state[i][3][0].velocity,
+                        "momentum": self.state[i][3][0].momentum,
+                    },
+                    1: {
+                        "velocity": self.state[i][3][1].velocity,
+                        "momentum": self.state[i][3][1].momentum,
+                    },
+                },
+            }
+
+        np.save(path, save_state, allow_pickle=True)
+
+    def load(self, path: Path):
+        save_state = np.load(path, allow_pickle=True)[()]
+
+        self.state[0][0].velocity = save_state["embedding"]["velocity"]
+        self.state[0][0].momentum = save_state["embedding"]["momentum"]
+
+        for i in range(2, len(self.state) - 1):
+            layer = save_state[f"layer_{i}"]
+            self.state[i][0][0][0].velocity = layer["attention"]["q"][0]["velocity"]
+            self.state[i][0][0][0].momentum = layer["attention"]["q"][0]["momentum"]
+            self.state[i][0][0][1].velocity = layer["attention"]["q"][1]["velocity"]
+            self.state[i][0][0][1].momentum = layer["attention"]["q"][1]["momentum"]
+
+            self.state[i][0][1][0].velocity = layer["attention"]["k"][0]["velocity"]
+            self.state[i][0][1][0].momentum = layer["attention"]["k"][0]["momentum"]
+            self.state[i][0][1][1].velocity = layer["attention"]["k"][1]["velocity"]
+            self.state[i][0][1][1].momentum = layer["attention"]["k"][1]["momentum"]
+
+            self.state[i][0][2][0].velocity = layer["attention"]["v"][0]["velocity"]
+            self.state[i][0][2][0].momentum = layer["attention"]["v"][0]["momentum"]
+            self.state[i][0][2][1].velocity = layer["attention"]["v"][1]["velocity"]
+            self.state[i][0][2][1].momentum = layer["attention"]["v"][1]["momentum"]
+
+            self.state[i][0][3][0].velocity = layer["attention"]["o"][0]["velocity"]
+            self.state[i][0][3][0].momentum = layer["attention"]["o"][0]["momentum"]
+            self.state[i][0][3][1].velocity = layer["attention"]["o"][1]["velocity"]
+            self.state[i][0][3][1].momentum = layer["attention"]["o"][1]["momentum"]
+
+            self.state[i][1][0].velocity = layer["norm1"][0]["velocity"]
+            self.state[i][1][0].momentum = layer["norm1"][0]["momentum"]
+            self.state[i][1][1].velocity = layer["norm1"][1]["velocity"]
+            self.state[i][1][1].momentum = layer["norm1"][1]["momentum"]
+
+            self.state[i][2][0][0].velocity = layer["mlp"]["linear1"][0]["velocity"]
+            self.state[i][2][0][0].momentum = layer["mlp"]["linear1"][0]["momentum"]
+            self.state[i][2][0][1].velocity = layer["mlp"]["linear1"][1]["velocity"]
+            self.state[i][2][0][1].momentum = layer["mlp"]["linear1"][1]["momentum"]
+
+            self.state[i][2][2][0].velocity = layer["mlp"]["linear2"][0]["velocity"]
+            self.state[i][2][2][0].momentum = layer["mlp"]["linear2"][0]["momentum"]
+            self.state[i][2][2][1].velocity = layer["mlp"]["linear2"][1]["velocity"]
+            self.state[i][2][2][1].momentum = layer["mlp"]["linear2"][1]["momentum"]
+
+            self.state[i][3][0].velocity = layer["norm2"][0]["velocity"]
+            self.state[i][3][0].momentum = layer["norm2"][0]["momentum"]
+            self.state[i][3][1].velocity = layer["norm2"][1]["velocity"]
+            self.state[i][3][1].momentum = layer["norm2"][1]["momentum"]
+
