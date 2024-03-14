@@ -86,6 +86,10 @@ class Adam:
         save_state = {}
 
         save_state["timestep"] = self.timestep
+        save_state["learning_rate"] = self.learning_rate
+        save_state["eps"] = self.eps
+        save_state["beta0"], save_state["beta1"] = self.betas
+
         save_state["embedding"] = {
             "velocity": self.state[0][0].velocity,
             "momentum": self.state[0][0].momentum,
@@ -188,6 +192,10 @@ class Adam:
         save_state = np.load(path, allow_pickle=True)[()]
 
         self.timestep = save_state["timestep"]
+        self.learning_rate = save_state["learning_rate"]
+        self.eps = save_state["eps"]
+        self.betas = save_state["beta0"], save_state["beta1"]
+
         self.state[0][0].velocity = save_state["embedding"]["velocity"]
         self.state[0][0].momentum = save_state["embedding"]["momentum"]
 
