@@ -31,7 +31,7 @@ def sample(
 
         predicted_text += meta["itos"][next_token]
 
-        print(f"\033[1m{initial_prompt}\033[0m{predicted_text}")
+    print(f"\033[1m{initial_prompt}\033[0m{predicted_text}")
 
 
 if __name__ == "__main__":
@@ -82,7 +82,7 @@ if __name__ == "__main__":
         transformer,
         args.initial_prompt,
         vocab_meta,
-        200,
+        500,
         config.seq_len,
         rng,
         temperature=1.0,
